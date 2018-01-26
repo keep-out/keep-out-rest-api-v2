@@ -10,11 +10,11 @@ router.post('/api/v1/trucks', db.createTruck);
 router.put('/api/v1/trucks/:id', db.updateTruck);
 router.delete('/api/v1/trucks/:id', db.deleteTruck);
 
-// // User endpoints
-// router.get('/api/v1/users/:id', db.getUser);
-// router.post('/api/v1/users', db.createUser);
-// router.put('/api/v1/users/:id', db.updateUser);
-// router.delete('/api/v1/users/:id', db.deleteUser);
+// User endpoints
+router.get('/api/v1/users/:id', db.getUser);
+router.post('/api/v1/users', db.createUser);
+router.put('/api/v1/users/:id', db.updateUser);
+router.delete('/api/v1/users/:id', db.deleteUser);
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
