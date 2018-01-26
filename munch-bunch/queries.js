@@ -1,4 +1,5 @@
-var promise = require('bluebird');
+const promise = require('bluebird');
+const bcrypt = require('bcrypt');
 
 var options = {
 	// Initialization options
@@ -14,6 +15,21 @@ const cn = {
 	password: 'munchbunch'
 };
 const db = pgp(cn);
+
+// Authenticate user and create JWT
+function authenticate(req, res, next) {
+	// TODO
+}
+
+// Register a new user and create JWT
+function register(req, res, next) {
+	// TODO
+}
+
+// Logout, invalidate JWT if not expired
+function logout(req, res, next) {
+	// TODO
+}
 
 // Get all trucks from database
 function getAllTrucks(req, res, next) {
@@ -115,6 +131,11 @@ function getUser(req, res, next) {
 
 // Creates user and writes to database
 function createUser(req, res, next) {
+	// hash password and save to hash param in request body
+	bcrypt.hash(req.body.hash, 10, function (err, hash) {
+		req.body.hash = hash;
+	});
+
 	db.none('INSERT INTO users(username, hash, fname,' + 
 		'lname, email) VALUES (${username}, ${hash},' + 
 		'${fname}, ${lname}, ${email})', req.body)
@@ -161,8 +182,11 @@ function deleteUser(req, res, next) {
 	});
 }
 
-// add query functions
+// Add query functions
 module.exports = {
+	authenticate: authenticate,
+	register: register,
+	logout: logout,
 	getAllTrucks: getAllTrucks,
 	getTruck: getTruck,
 	createTruck: createTruck,

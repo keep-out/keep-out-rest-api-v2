@@ -3,6 +3,11 @@ var router = express.Router();
 
 var db = require('../queries');
 
+// Auth endpoints
+router.post('/api/v1/auth/authenticate', db.authenticate);
+router.post('/api/v1/auth/register', db.register);
+router.post('/api/v1/auth/logout', db.logout);
+
 // Truck endpoints
 router.get('/api/v1/trucks', db.getAllTrucks);
 router.get('/api/v1/trucks/:id', db.getTruck);
