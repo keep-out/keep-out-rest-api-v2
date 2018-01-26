@@ -113,6 +113,21 @@ function deleteTruck(req, res, next) {
 	});
 }
 
+// Gets all users from database
+function getAllUsers(req, res, next) {
+	db.any('SELECT * FROM users')
+	.then(function (data) {
+		res.status(200).json({
+			status: 'success',
+			data: data,
+			message: 'Retrieved ALL users'
+		});
+	})
+	.catch(function (err) {
+		return next(err);
+	});
+}
+
 // Gets a user by id
 function getUser(req, res, next) {
 	var userID = parseInt(req.params.id);
@@ -192,6 +207,7 @@ module.exports = {
 	createTruck: createTruck,
 	updateTruck: updateTruck,
 	deleteTruck: deleteTruck,
+	getAllUsers: getAllUsers,
 	getUser: getUser,
 	createUser: createUser,
 	updateUser: updateUser,
