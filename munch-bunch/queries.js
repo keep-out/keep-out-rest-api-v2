@@ -19,7 +19,39 @@ const db = pgp(cn);
 
 // Authenticate user and create JWT
 function authenticate(req, res, next) {
-	// TODO
+	db.one('SELECT hash FROM users WHERE username=$1', 
+		req.body.username)
+	.then(function (data) {
+		// Check hashed password with password
+		console.log(req.body.password);
+		console.log(data.hash);
+		bcrypt.compare(req.body.password, data.hash, 
+			function (err, result) {
+			// Passwords match
+			if (result) {
+				// Creates a new JWT that expires in 24 hours
+				var token = jwt.sign({username: req.body.username},
+					process.env.JWT_SECRET, {expiresIn: 86400});
+				res.status(200).json({
+					status: 'success',
+					data: {
+						auth: true,
+						token: token
+					},
+					message: 'Authenticated user'
+				});
+			// Passwords don't match
+			} else {
+				console.log('passwords don\'t match');
+				return next(err);
+			}
+		});
+	})
+	.catch(function (err) {
+		console.log('no user with username');
+		// No user exists with given username
+		return next(err);
+	});
 }
 
 // Register a new user and create JWT
@@ -32,15 +64,16 @@ function register(req, res, next) {
 		'lname, email) VALUES (${username}, ${hash},' + 
 		'${fname}, ${lname}, ${email})', req.body)
 	.then(function () {
-		console.log('JWT secret: ' + process.env.JWT_SECRET);
 		// Creates a new JWT that expires in 24 hours
 		var token = jwt.sign({username: req.body.username}, 
-		process.env.JWT_SECRET, {expiresIn: 86400});
+			process.env.JWT_SECRET, {expiresIn: 86400});
 		res.status(201).json({
 			status: 'success',
-			message: 'Created new user',
-			auth: true, 
-			token: token
+			data: {
+				auth: true, 
+				token: token
+			},
+			message: 'Created new user'
 		});
 	})
 	.catch(function (err) {
