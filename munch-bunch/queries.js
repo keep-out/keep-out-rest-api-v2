@@ -1,5 +1,6 @@
 const promise = require('bluebird');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 var options = {
 	// Initialization options
@@ -23,7 +24,28 @@ function authenticate(req, res, next) {
 
 // Register a new user and create JWT
 function register(req, res, next) {
-	// TODO
+	bcrypt.hash(req.body.hash, 10, function (err, hash) {
+		req.body.hash = hash;
+	});
+	// Write user to database
+	db.none('INSERT INTO users(username, hash, fname,' + 
+		'lname, email) VALUES (${username}, ${hash},' + 
+		'${fname}, ${lname}, ${email})', req.body)
+	.then(function () {
+		console.log('JWT secret: ' + process.env.JWT_SECRET);
+		// Creates a new JWT that expires in 24 hours
+		var token = jwt.sign({username: req.body.username}, 
+		process.env.JWT_SECRET, {expiresIn: 86400});
+		res.status(201).json({
+			status: 'success',
+			message: 'Created new user',
+			auth: true, 
+			token: token
+		});
+	})
+	.catch(function (err) {
+		return next(err);
+	});
 }
 
 // Logout, invalidate JWT if not expired
@@ -145,6 +167,8 @@ function getUser(req, res, next) {
 }
 
 // Creates user and writes to database
+// (Not used int the client application.
+// Refer to /auth/register instead)
 function createUser(req, res, next) {
 	// hash password and save to hash param in request body
 	bcrypt.hash(req.body.hash, 10, function (err, hash) {

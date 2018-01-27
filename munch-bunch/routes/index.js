@@ -24,7 +24,7 @@ router.delete('/api/v1/users/:id', db.deleteUser);
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: 'Munch Bunch REST API' });
 });
 
 module.exports = router;
