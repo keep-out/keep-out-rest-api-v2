@@ -38,17 +38,15 @@ function authenticate(req, res, next) {
 						auth: true,
 						token: token
 					},
-					message: 'Authenticated user'
+					message: 'Authenticated user.'
 				});
 			// Passwords don't match
 			} else {
-				console.log('passwords don\'t match');
 				return next(err);
 			}
 		});
 	})
 	.catch(function (err) {
-		console.log('no user with username');
 		// No user exists with given username
 		return next(err);
 	});
@@ -73,7 +71,7 @@ function register(req, res, next) {
 				auth: true, 
 				token: token
 			},
-			message: 'Created new user'
+			message: 'Created a new user.'
 		});
 	})
 	.catch(function (err) {
@@ -83,7 +81,7 @@ function register(req, res, next) {
 
 // Logout, invalidate JWT if not expired
 function logout(req, res, next) {
-	// TODO
+	
 }
 
 // Get all trucks from database
@@ -92,7 +90,7 @@ function getAllTrucks(req, res, next) {
 		res.status(200).json({
 			status: 'success',
 			data: data,
-			message: 'Retrieved ALL trucks'
+			message: 'Retrieved all trucks.'
 		});
 	})
 	.catch(function (err) {
@@ -108,7 +106,7 @@ function getTruck(req, res, next) {
 		res.status(200).json({
 			status: 'success',
 			data: data,
-			message: 'Retrieved truck ' + truckID
+			message: 'Retrieved truck ' + truckID + '.'
 		});
 	})
 	.catch(function (err) {
@@ -127,7 +125,7 @@ function createTruck(req, res, next) {
 	.then(function () {
 		res.status(201).json({
 			status: 'success',
-			message: 'Created new truck'
+			message: 'Created new truck.'
 		});
 	})
 	.catch(function (err) {
@@ -145,7 +143,7 @@ function updateTruck(req, res, next) {
 	.then(function () {
 		res.status(200).json({
 			status: 'success',
-			message: 'Updated truck'
+			message: 'Updated truck.'
 		});
 	})
 	.catch(function (err) {
@@ -160,7 +158,7 @@ function deleteTruck(req, res, next) {
 	.then(function (result) {
 		res.status(200).json({
 			status: 'success',
-			message: `Removed ${result.rowCount} truck`
+			message: `Removed ${result.rowCount} truck.`
 		});
 	})
 	.catch(function (err) {
@@ -175,7 +173,7 @@ function getAllUsers(req, res, next) {
 		res.status(200).json({
 			status: 'success',
 			data: data,
-			message: 'Retrieved ALL users'
+			message: 'Retrieved all users.'
 		});
 	})
 	.catch(function (err) {
@@ -191,7 +189,7 @@ function getUser(req, res, next) {
 		res.status(200).json({
 			status: 'success',
 			data: data,
-			message: 'Retrieved user ' + userID
+			message: 'Retrieved user ' + userID + '.'
 		});
 	})
 	.catch(function (err) {
@@ -214,7 +212,7 @@ function createUser(req, res, next) {
 	.then(function () {
 		res.status(201).json({
 			status: 'success',
-			message: 'Created new user'
+			message: 'Created new user.'
 		});
 	})
 	.catch(function (err) {
@@ -231,7 +229,7 @@ function updateUser(req, res, next) {
 	.then(function () {
 		res.status(200).json({
 			status: 'success',
-			message: 'updated user'
+			message: 'Updated user.'
 		});
 	})
 	.catch(function (err) {
@@ -246,7 +244,7 @@ function deleteUser(req, res, next) {
 	.then(function (result) {
 		res.status(200).json({
 			status: 'success',
-			message: `Removed ${result.rowCount} user`
+			message: `Removed ${result.rowCount} user.`
 		});
 	})
 	.catch(function (err) {

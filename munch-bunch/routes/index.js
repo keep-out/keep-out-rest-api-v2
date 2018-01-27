@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
+var vt = require('../auth/verifyToken');
 var db = require('../queries');
 
 // Auth endpoints
@@ -9,18 +10,18 @@ router.post('/api/v1/auth/register', db.register);
 router.post('/api/v1/auth/logout', db.logout);
 
 // Truck endpoints
-router.get('/api/v1/trucks', db.getAllTrucks);
-router.get('/api/v1/trucks/:id', db.getTruck);
-router.post('/api/v1/trucks', db.createTruck);
-router.put('/api/v1/trucks/:id', db.updateTruck);
-router.delete('/api/v1/trucks/:id', db.deleteTruck);
+router.get('/api/v1/trucks', vt.verifyToken, db.getAllTrucks);
+router.get('/api/v1/trucks/:id', vt.verifyToken, db.getTruck);
+router.post('/api/v1/trucks', vt.verifyToken, db.createTruck);
+router.put('/api/v1/trucks/:id', vt.verifyToken, db.updateTruck);
+router.delete('/api/v1/trucks/:id', vt.verifyToken, db.deleteTruck);
 
 // User endpoints
-router.get('/api/v1/users/', db.getAllUsers);
-router.get('/api/v1/users/:id', db.getUser);
-router.post('/api/v1/users', db.createUser);
-router.put('/api/v1/users/:id', db.updateUser);
-router.delete('/api/v1/users/:id', db.deleteUser);
+router.get('/api/v1/users/', vt.verifyToken, db.getAllUsers);
+router.get('/api/v1/users/:id', vt.verifyToken, db.getUser);
+router.post('/api/v1/users', vt.verifyToken, db.createUser);
+router.put('/api/v1/users/:id', vt.verifyToken, db.updateUser);
+router.delete('/api/v1/users/:id', vt.verifyToken, db.deleteUser);
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
