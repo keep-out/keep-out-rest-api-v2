@@ -1,4 +1,4 @@
-t promise = require('bluebird');
+const promise = require('bluebird');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
@@ -11,9 +11,9 @@ var pgp = require('pg-promise')(options);
 const cn = {
 	host: 'munchbunch-db-dev.cguknh9wbkgb.us-west-1.rds.amazonaws.com',
 	port: 5432,
-	database: 'munchbunch_db_dev',
-	user: 'munchbunch',
-	password: 'munchbunch'
+	database: "munchbunch_db_dev",
+	user: "munchbunch",
+	password: "munchbunch"
 };
 const db = pgp(cn);
 
@@ -23,8 +23,6 @@ function authenticate(req, res, next) {
 		req.body.username)
 	.then(function (data) {
 		// Check hashed password with password
-		console.log(req.body.password);
-		console.log(data.hash);
 		bcrypt.compare(req.body.password, data.hash, 
 			function (err, result) {
 			// Passwords match
@@ -55,30 +53,35 @@ function authenticate(req, res, next) {
 
 // Register a new user and create JWT
 function register(req, res, next) {
-	bcrypt.hash(req.body.hash, 10, function (err, hash) {
-		req.body.hash = hash;
-	});
-	// Write user to database
-	db.none('INSERT INTO users(username, hash, fname,' + 
-		'lname, email) VALUES (${username}, ${hash},' + 
-		'${fname}, ${lname}, ${email})', req.body)
-	.then(function () {
-		// Creates a new JWT that expires in 24 hours
-		var token = jwt.sign({username: req.body.username}, 
-			process.env.JWT_SECRET, {expiresIn: 86400});
-		res.status(201).json({
-			code: 201,
-			status: 'success',
-			data: {
-				auth: true, 
-				token: token
-			},
-			message: 'Created a new user.'
+	if (isValidUser(req)) {
+		// Write user to database
+		db.none('INSERT INTO users(username, hash, fname,' + 
+			'lname, email) VALUES (${username}, ${hash},' + 
+			'${fname}, ${lname}, ${email})', req.body)
+		.then(function () {
+			// Creates a new JWT that expires in 24 hours
+			var token = jwt.sign({username: req.body.username}, 
+				process.env.JWT_SECRET, {expiresIn: 86400});
+			res.status(201).json({
+				code: 201,
+				status: 'success',
+				data: {
+					auth: true, 
+					token: token
+				},
+				message: 'Created a new user.'
+			});
+		})
+		.catch(function (err) {
+			return next(err);
 		});
-	})
-	.catch(function (err) {
-		return next(err);
-	});
+	} else {
+		res.status(400).json({
+			code: 400,
+			status: 'error',
+			message: 'Invalid request'
+		})
+	}
 }
 
 // Logout, invalidate JWT if not expired
@@ -210,42 +213,58 @@ function getUser(req, res, next) {
 // (Not used int the client application.
 // Refer to /auth/register instead)
 function createUser(req, res, next) {
-	// hash password and save to hash param in request body
-	bcrypt.hash(req.body.hash, 10, function (err, hash) {
-		req.body.hash = hash;
-	});
-
-	db.none('INSERT INTO users(username, hash, fname,' + 
-		'lname, email) VALUES (${username}, ${hash},' + 
-		'${fname}, ${lname}, ${email})', req.body)
-	.then(function () {
-		res.status(201).json({
-			code: 201,
-			status: 'success',
-			message: 'Created new user.'
+	if (isValidUser(req)) {
+		// hash password and save to hash param in request body
+		bcrypt.hash(req.body.hash, 10, function (err, hash) {
+			req.body.hash = hash;
 		});
-	})
-	.catch(function (err) {
-		return next(err);
-	});
+
+		db.none('INSERT INTO users(username, hash, fname,' + 
+			'lname, email) VALUES (${username}, ${hash},' + 
+			'${fname}, ${lname}, ${email})', req.body)
+		.then(function () {
+			res.status(201).json({
+				code: 201,
+				status: 'success',
+				message: 'Created new user.'
+			});
+		})
+		.catch(function (err) {
+			return next(err);
+		});
+	} else {
+		res.status(400).json({
+			code: 400,
+			status: 'error',
+			message: 'Invalid request'
+		})
+	}
 }
 
 // Updates a user by id
 function updateUser(req, res, next) {
-	db.none('UPDATE users SET username=$1, hash=$2, fname=$3,' + 
-		'lname=$4, email=$5 WHERE id=$6', [req.body.username,
-		req.body.hash, req.body.fname, req.body.lname,
-		req.body.email, parseInt(req.params.id)])
-	.then(function () {
-		res.status(200).json({
-			code: 200,
-			status: 'success',
-			message: 'Updated user.'
+	if (isValidUser(req)) {
+		db.none('UPDATE users SET username=$1, hash=$2, fname=$3,' + 
+			'lname=$4, email=$5 WHERE id=$6', [req.body.username,
+			req.body.hash, req.body.fname, req.body.lname,
+			req.body.email, parseInt(req.params.id)])
+		.then(function () {
+			res.status(200).json({
+				code: 200,
+				status: 'success',
+				message: 'Updated user.'
+			});
+		})
+		.catch(function (err) {
+			return next(err);
 		});
-	})
-	.catch(function (err) {
-		return next(err);
-	});
+	} else {
+		res.status(400).json({
+			code: 400,
+			status: 'error',
+			message: 'Invalid request'
+		})
+	}
 }
 
 // Deletes a user by id
@@ -262,6 +281,48 @@ function deleteUser(req, res, next) {
 	.catch(function (err) {
 		return next(err);
 	});
+}
+
+function isValidTruck(req) {
+	if (req.body.name.length == 0 || 
+		req.body.name.length > 50) {
+		return false;
+	}
+	if (!isValidPhone(req.body.phone)) {
+		return false;
+	}
+	return true;
+}
+
+function isValidUser(req) {
+	if (req.body.username.length < 5 || 
+		req.body.username.length > 30) {
+		return false;
+	}
+	if (req.body.hash.length < 5 || 
+		req.body.hash.length > 30) {
+		return false;
+	}
+	if (req.body.fname.length == 0 || 
+		req.body.fname.length > 30) {
+		return false;
+	}
+	if (req.body.lname.length == 0 || 
+		req.body.lname.length > 30) {
+		return false;
+	}
+	return isValidEmail(email);
+}
+
+function isValidPhone(p) {
+  var phoneRe = /^[2-9]\d{2}[2-9]\d{2}\d{4}$/;
+  var digits = p.replace(/\D/g, "");
+  return phoneRe.test(digits);
+}
+
+function isValidEmail(email) {
+	var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
 }
 
 // Add query functions
