@@ -1,4 +1,4 @@
-const promise = require('bluebird');
+t promise = require('bluebird');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
