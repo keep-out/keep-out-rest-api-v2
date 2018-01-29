@@ -66,6 +66,7 @@ function register(req, res, next) {
 		var token = jwt.sign({username: req.body.username}, 
 			process.env.JWT_SECRET, {expiresIn: 86400});
 		res.status(201).json({
+			code: "201",
 			status: 'success',
 			data: {
 				auth: true, 
@@ -88,6 +89,7 @@ function logout(req, res, next) {
 function getAllTrucks(req, res, next) {
 	db.any('SELECT * FROM trucks').then(function (data) {
 		res.status(200).json({
+			code: "200",
 			status: 'success',
 			data: data,
 			message: 'Retrieved all trucks.'
@@ -104,6 +106,7 @@ function getTruck(req, res, next) {
 	db.one('SELECT * FROM trucks WHERE id=$1', truckID)
 	.then(function (data) {
 		res.status(200).json({
+			code: "200",
 			status: 'success',
 			data: data,
 			message: 'Retrieved truck ' + truckID + '.'
@@ -124,6 +127,7 @@ function createTruck(req, res, next) {
 		req.body)
 	.then(function () {
 		res.status(201).json({
+			code: "201",
 			status: 'success',
 			message: 'Created new truck.'
 		});
@@ -157,6 +161,7 @@ function deleteTruck(req, res, next) {
 	db.result('DELETE FROM trucks WHERE id=$1', truckID)
 	.then(function (result) {
 		res.status(200).json({
+			code: "200",
 			status: 'success',
 			message: `Removed ${result.rowCount} truck.`
 		});
@@ -171,6 +176,7 @@ function getAllUsers(req, res, next) {
 	db.any('SELECT * FROM users')
 	.then(function (data) {
 		res.status(200).json({
+			code: "200",
 			status: 'success',
 			data: data,
 			message: 'Retrieved all users.'
@@ -187,6 +193,7 @@ function getUser(req, res, next) {
 	db.one('SELECT * FROM users WHERE id=$1', userID)
 	.then(function (data) {
 		res.status(200).json({
+			code: "200",
 			status: 'success',
 			data: data,
 			message: 'Retrieved user ' + userID + '.'
@@ -211,6 +218,7 @@ function createUser(req, res, next) {
 		'${fname}, ${lname}, ${email})', req.body)
 	.then(function () {
 		res.status(201).json({
+			code: "201",
 			status: 'success',
 			message: 'Created new user.'
 		});
@@ -228,6 +236,7 @@ function updateUser(req, res, next) {
 		req.body.email, parseInt(req.params.id)])
 	.then(function () {
 		res.status(200).json({
+			code: "200",
 			status: 'success',
 			message: 'Updated user.'
 		});
@@ -243,6 +252,7 @@ function deleteUser(req, res, next) {
 	db.result('DELETE FROM users WHERE id=$1', userID)
 	.then(function (result) {
 		res.status(200).json({
+			code: "200",
 			status: 'success',
 			message: `Removed ${result.rowCount} user.`
 		});
