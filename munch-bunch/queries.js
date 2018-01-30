@@ -19,6 +19,7 @@ const db = pgp(cn);
 
 // Authenticate user and create JWT
 function authenticate(req, res, next) {
+	console.log("authenticate called")
 	db.one('SELECT hash FROM users WHERE username=$1', 
 		req.body.username)
 	.then(function (data) {
@@ -47,6 +48,7 @@ function authenticate(req, res, next) {
 	})
 	.catch(function (err) {
 		// No user exists with given username
+		console.log(err);
 		return next(err);
 	});
 }
@@ -54,6 +56,7 @@ function authenticate(req, res, next) {
 // Register a new user and create JWT
 function register(req, res, next) {
 	if (isValidUser(req)) {
+		req.body.hash = bcrypt.hashSync(req.body.hash, 10);
 		// Write user to database
 		db.none('INSERT INTO users(username, hash, fname,' + 
 			'lname, email) VALUES (${username}, ${hash},' + 
@@ -311,7 +314,7 @@ function isValidUser(req) {
 		req.body.lname.length > 30) {
 		return false;
 	}
-	return isValidEmail(email);
+	return isValidEmail(req.body.email);
 }
 
 function isValidPhone(p) {
