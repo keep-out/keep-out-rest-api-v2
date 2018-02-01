@@ -126,11 +126,12 @@ function getTruck(req, res, next) {
 
 // Create a new truck and write to database
 function createTruck(req, res, next) {
-	req.body.latitude = parseFloat(req.body.latitude);
-	req.body.longitude = parseFloat(req.body.longitude);
-	db.none('INSERT INTO trucks(name, phone, latitude,' + 
-		'longitude, broadcasting) VALUES (${name}, ${phone},' + 
-		'${latitude}, ${longitude}, ${broadcasting})',
+	req.body.zip = parseInt(req.body.zip);
+	// req.body.latitude = parseFloat(req.body.latitude);
+	// req.body.longitude = parseFloat(req.body.longitude);
+	db.none('INSERT INTO trucks(name, phone, address, city,' +
+		'state, zip, broadcasting) VALUES (${name}, ${phone},' + 
+		'${address}, ${city}, ${state}, ${zip}, ${broadcasting})',
 		req.body)
 	.then(function () {
 		res.status(201).json({
@@ -146,11 +147,11 @@ function createTruck(req, res, next) {
 
 // Update a truck by id
 function updateTruck(req, res, next) {
-	db.none('UPDATE trucks SET name=$1, phone=$2, latitude=$3,' + 
-		'longitude=$4, broadcasting=$5 WHERE id=$6',
-		[req.body.name, req.body.phone, parseFloat(req.body.latitude),
-		parseFloat(req.body.longitude), req.body.broadcasting, 
-		parseInt(req.params.id)])
+	db.none('UPDATE trucks SET name=$1, phone=$2, address=$3,' + 
+		'city=$4, state=$5, zip=$6, broadcasting=$7 WHERE id=$8',
+		[req.body.name, req.body.phone, req.body.address,
+		req.body.city, req.body.state, parseInt(req.body.zip),
+		 req.body.broadcasting, parseInt(req.params.id)])
 	.then(function () {
 		res.status(200).json({
 			code: 200,
