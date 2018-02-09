@@ -29,8 +29,10 @@ function authenticate(req, res, next) {
 			// Passwords match
 			if (result) {
 				// Creates a new JWT that expires in 24 hours
+				console.log("creating jwt");
 				var token = jwt.sign({username: req.body.username},
 					process.env.JWT_SECRET, {expiresIn: 86400});
+				console.log("created jwt");
 				res.status(200).json({
 					code: 200,
 					status: 'success',
