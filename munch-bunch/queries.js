@@ -19,20 +19,17 @@ const db = pgp(cn);
 
 // Authenticate user and create JWT
 function authenticate(req, res, next) {
-	console.log("authenticate called")
-	db.one('SELECT hash FROM users WHERE username=$1', 
+	db.one('SELECT hash FROM users WHERE username=$1',
 		req.body.username)
 	.then(function (data) {
 		// Check hashed password with password
-		bcrypt.compare(req.body.password, data.hash, 
+		bcrypt.compare(req.body.password, data.hash,
 			function (err, result) {
 			// Passwords match
 			if (result) {
 				// Creates a new JWT that expires in 24 hours
-				console.log("creating jwt");
 				var token = jwt.sign({username: req.body.username},
 					process.env.JWT_SECRET, {expiresIn: 86400});
-				console.log("created jwt");
 				res.status(200).json({
 					code: 200,
 					status: 'success',
@@ -60,18 +57,18 @@ function register(req, res, next) {
 	if (isValidUser(req)) {
 		req.body.hash = bcrypt.hashSync(req.body.hash, 10);
 		// Write user to database
-		db.none('INSERT INTO users(username, hash, fname,' + 
-			'lname, email) VALUES (${username}, ${hash},' + 
+		db.none('INSERT INTO users(username, hash, fname,' +
+			'lname, email) VALUES (${username}, ${hash},' +
 			'${fname}, ${lname}, ${email})', req.body)
 		.then(function () {
 			// Creates a new JWT that expires in 24 hours
-			var token = jwt.sign({username: req.body.username}, 
+			var token = jwt.sign({username: req.body.username},
 				process.env.JWT_SECRET, {expiresIn: 86400});
 			res.status(201).json({
 				code: 201,
 				status: 'success',
 				data: {
-					auth: true, 
+					auth: true,
 					token: token
 				},
 				message: 'Created a new user.'
@@ -91,7 +88,7 @@ function register(req, res, next) {
 
 // Logout, invalidate JWT if not expired
 function logout(req, res, next) {
-	
+
 }
 
 // Get all trucks from database
@@ -132,7 +129,7 @@ function createTruck(req, res, next) {
 	// req.body.latitude = parseFloat(req.body.latitude);
 	// req.body.longitude = parseFloat(req.body.longitude);
 	db.none('INSERT INTO trucks(name, phone, address, city,' +
-		'state, zip, broadcasting) VALUES (${name}, ${phone},' + 
+		'state, zip, broadcasting) VALUES (${name}, ${phone},' +
 		'${address}, ${city}, ${state}, ${zip}, ${broadcasting})',
 		req.body)
 	.then(function () {
@@ -149,7 +146,7 @@ function createTruck(req, res, next) {
 
 // Update a truck by id
 function updateTruck(req, res, next) {
-	db.none('UPDATE trucks SET name=$1, phone=$2, address=$3,' + 
+	db.none('UPDATE trucks SET name=$1, phone=$2, address=$3,' +
 		'city=$4, state=$5, zip=$6, broadcasting=$7 WHERE id=$8',
 		[req.body.name, req.body.phone, req.body.address,
 		req.body.city, req.body.state, parseInt(req.body.zip),
@@ -225,8 +222,8 @@ function createUser(req, res, next) {
 			req.body.hash = hash;
 		});
 
-		db.none('INSERT INTO users(username, hash, fname,' + 
-			'lname, email) VALUES (${username}, ${hash},' + 
+		db.none('INSERT INTO users(username, hash, fname,' +
+			'lname, email) VALUES (${username}, ${hash},' +
 			'${fname}, ${lname}, ${email})', req.body)
 		.then(function () {
 			res.status(201).json({
@@ -250,7 +247,7 @@ function createUser(req, res, next) {
 // Updates a user by id
 function updateUser(req, res, next) {
 	if (isValidUser(req)) {
-		db.none('UPDATE users SET username=$1, hash=$2, fname=$3,' + 
+		db.none('UPDATE users SET username=$1, hash=$2, fname=$3,' +
 			'lname=$4, email=$5 WHERE id=$6', [req.body.username,
 			req.body.hash, req.body.fname, req.body.lname,
 			req.body.email, parseInt(req.params.id)])
@@ -290,7 +287,7 @@ function deleteUser(req, res, next) {
 }
 
 function isValidTruck(req) {
-	if (req.body.name.length == 0 || 
+	if (req.body.name.length == 0 ||
 		req.body.name.length > 50) {
 		return false;
 	}
@@ -301,19 +298,19 @@ function isValidTruck(req) {
 }
 
 function isValidUser(req) {
-	if (req.body.username.length < 5 || 
+	if (req.body.username.length < 5 ||
 		req.body.username.length > 30) {
 		return false;
 	}
-	if (req.body.hash.length < 5 || 
+	if (req.body.hash.length < 5 ||
 		req.body.hash.length > 30) {
 		return false;
 	}
-	if (req.body.fname.length == 0 || 
+	if (req.body.fname.length == 0 ||
 		req.body.fname.length > 30) {
 		return false;
 	}
-	if (req.body.lname.length == 0 || 
+	if (req.body.lname.length == 0 ||
 		req.body.lname.length > 30) {
 		return false;
 	}
