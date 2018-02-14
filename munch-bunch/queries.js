@@ -1,10 +1,35 @@
 const promise = require('bluebird');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const aws = require('aws-sdk');
+const fs = require('fs');
+const AWS = require('aws-sdk');
 
-aws.config.loadFromPath('aws.json');
-var s3 = new aws.S3();
+// Define S3 bucket name constants
+const TRUCK_PHOTO_BUCKET = 'api.truck-profile-images.munch-bunch';
+const TRUCK_SCHEDULE_BUCKET = 'api.truck-schedules.munch-bunch';
+const TRUCK_MENU_BUCKET = 'api.truck-menus.munch-bunch';
+const USER_PHOTO_BUCKET = 'api.user-profile-images.munch-bunch';
+const BASE_64 = 'base64';
+const IMG_JPEG = 'image/jpeg';
+const APP_JSON = 'application/json';
+
+// Configure AWS with access and secret access keys
+AWS.config.update({accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+	secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY});
+AWS.config.update({region: process.env.AWS_S3_REGION})
+
+var s3 = new AWS.S3();
+// Prints out all the buckets
+// listS3Buckets();
+function listS3Buckets() {
+	s3.listBuckets(function(err, data) {
+		if (err) {
+			console.log("Error:", err);
+		} else {
+			console.log("Buckets:", data.Buckets);
+		}
+	});
+}
 
 var options = {
 	// Initialization options
@@ -15,9 +40,9 @@ var pgp = require('pg-promise')(options);
 const cn = {
 	host: 'munchbunch-db-dev.cguknh9wbkgb.us-west-1.rds.amazonaws.com',
 	port: 5432,
-	database: "munchbunch_db_dev",
-	user: "munchbunch",
-	password: "munchbunch"
+	database: process.env.DB_NAME_DEV,
+	user: process.env.DB_USERNAME_DEV,
+	password: process.env.DB_PASSWORD_DEV
 };
 const db = pgp(cn);
 
@@ -289,40 +314,91 @@ function deleteUser(req, res, next) {
 	});
 }
 
+// Helper function to upload file to S3
+function uploadToS3(uploadParams) {
+	s3.upload(uploadParams, function(err, data) {
+		if (err) {
+			console.log("Error:", err);
+		} else {
+			console.log("Upload success", data.Location);
+		}
+	});
+}
+
+// Helper function create params for S3 upload
+function getParams(bucket, key, base64Data, encoding, type) {
+	const params = {
+		Bucket: bucket,
+		key: key,
+		Body: base64Data,
+		ACL: 'public-read',
+		ContentEncoding: encoding,
+		ContentType: type
+	};
+	return params;
+}
+
 // Get truck photo from S3 by truck_id
 function getTruckPhoto(req, res, next) {
 	// TODO
-	var truckID = parseInt(req.params.truck_id);
+	var truckID = req.params.truck_id;
 }
 
 // Upload a truck photo to S3 by truck_id
 function uploadTruckPhoto(req, res, next) {
+	var truckID = req.params.truck_id;
+	var base64Data = req.body.base64Data;
+	var uploadParams = getParams(TRUCK_PHOTO_BUCKET,
+		truckID, base64Data, BASE_64, JPEG);
+	uploadToS3(uploadParams);
+}
+
+// Update a truck photo in S3 by truck_id
+function updateTruckPhoto(req, res, next) {
 	// TODO
-	var truckID = parseInt(req.params.truck_id);
+	var truckID = req.params.truck_id;
 }
 
 // Get truck schedule from S3 by truck_id
 function getTruckSchedule(req, res, next) {
 	// TODO
-	var truckID = parseInt(req.params.truck_id);
+	var truckID = req.params.truck_id;
 }
 
 // Upload a truck schedule to S3 by truck_id
 function uploadTruckSchedule(req, res, next) {
 	// TODO
-	var truckID = parseInt(req.params.truck_id);
+	var truckID = req.params.truck_id;
+}
+
+// Update a truck photo in S3 by truck_id
+function updateTruckSchedule(req, res, next) {
+	var truckID = req.params.truck_id;
+	var base64Data = req.body.base64Data;
+	var uploadParams = getParams(TRUCK_SCHEDULE_BUCKET,
+		truckID, base64Data, BASE_64, APP_JSON);
 }
 
 // Get user photo from S3 by user_id
 function getUserPhoto(req, res, next) {
 	// TODO
-	var userID = parseInt(req.params.user_id);
+	var userID = req.params.user_id;
 }
 
 // Upload a user photo to S3 by user_id
 function uploadUserPhoto(req, res, next) {
 	// TODO
-	var userID = parseInt(req.params.user_id);
+	var userID = req.params.user_id;
+	var base64Data = req.body.base64Data;
+	var uploadParams = getParams(USER_PHOTO_BUCKET,
+		userID, base64Data, BASE_64, IMG_JPEG);
+	uploadToS3(uploadParams);
+}
+
+// Update a user photo in S3 by user_id
+function updateUserPhoto(req, res, next) {
+	// TODO
+	var userID = req.params.user_id;
 }
 
 // Check if a valid truck
@@ -388,8 +464,11 @@ module.exports = {
 	deleteUser: deleteUser,
 	getTruckPhoto: getTruckPhoto,
 	uploadTruckPhoto: uploadTruckPhoto,
+	updateTruckPhoto: updateTruckPhoto,
 	getTruckSchedule: getTruckSchedule,
 	uploadTruckSchedule: uploadTruckSchedule,
+	updateTruckSchedule: updateTruckSchedule,
 	getUserPhoto: getUserPhoto,
-	uploadUserPhoto: uploadUserPhoto
+	uploadUserPhoto: uploadUserPhoto,
+	updateUserPhoto: updateUserPhoto
 };
