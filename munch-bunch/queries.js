@@ -325,6 +325,17 @@ function uploadToS3(uploadParams) {
 	});
 }
 
+// Helper function to download a file from S3
+function downloadFromS3(downloadParams) {
+	s3.getObject(downloadParams, function(err, data) {
+		if (err) {
+			console.log("Error:", err);
+		} else {
+			console.log(data.Body.toString());
+		}
+	});
+}
+
 // Helper function create params for S3 upload
 function getParams(bucket, key, base64Data, encoding, type) {
 	const params = {
@@ -340,8 +351,10 @@ function getParams(bucket, key, base64Data, encoding, type) {
 
 // Get truck photo from S3 by truck_id
 function getTruckPhoto(req, res, next) {
-	// TODO
 	var truckID = req.params.truck_id;
+	var	downloadParams = {Bucket: TRUCK_PHOTO_BUCKET,
+		Key: truckID};
+	downloadFromS3(downloadParams);
 }
 
 // Upload a truck photo to S3 by truck_id
@@ -363,6 +376,9 @@ function updateTruckPhoto(req, res, next) {
 function getTruckSchedule(req, res, next) {
 	// TODO
 	var truckID = req.params.truck_id;
+	var	downloadParams = {Bucket: TRUCK_SCHEDULE_BUCKET,
+		Key: truckID};
+	downloadFromS3(downloadParams);
 }
 
 // Upload a truck schedule to S3 by truck_id
@@ -383,6 +399,9 @@ function updateTruckSchedule(req, res, next) {
 function getUserPhoto(req, res, next) {
 	// TODO
 	var userID = req.params.user_id;
+	var	downloadParams = {Bucket: USER_PHOTO_BUCKET,
+		Key: userID};
+	downloadFromS3(downloadParams);
 }
 
 // Upload a user photo to S3 by user_id
