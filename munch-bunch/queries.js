@@ -1,6 +1,10 @@
 const promise = require('bluebird');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const aws = require('aws-sdk');
+
+aws.config.loadFromPath('aws.json');
+var s3 = new aws.S3();
 
 var options = {
 	// Initialization options
@@ -19,11 +23,11 @@ const db = pgp(cn);
 
 // Authenticate user and create JWT
 function authenticate(req, res, next) {
-	db.one('SELECT hash FROM users WHERE username=$1',
+	db.one('SELECT hashed_password FROM users WHERE username=$1',
 		req.body.username)
 	.then(function (data) {
 		// Check hashed password with password
-		bcrypt.compare(req.body.password, data.hash,
+		bcrypt.compare(req.body.password, data.hashed_password,
 			function (err, result) {
 			// Passwords match
 			if (result) {
@@ -55,11 +59,11 @@ function authenticate(req, res, next) {
 // Register a new user and create JWT
 function register(req, res, next) {
 	if (isValidUser(req)) {
-		req.body.hash = bcrypt.hashSync(req.body.hash, 10);
+		req.body.hashed_password = bcrypt.hashSync(req.body.hashed_password, 10);
 		// Write user to database
-		db.none('INSERT INTO users(username, hash, fname,' +
-			'lname, email) VALUES (${username}, ${hash},' +
-			'${fname}, ${lname}, ${email})', req.body)
+		db.none('INSERT INTO users(username, hashed_password, first_name,' +
+			'last_name, email) VALUES (${username}, ${hashed_password},' +
+			'${first_name}, ${last_name}, ${email})', req.body)
 		.then(function () {
 			// Creates a new JWT that expires in 24 hours
 			var token = jwt.sign({username: req.body.username},
@@ -86,7 +90,7 @@ function register(req, res, next) {
 	}
 }
 
-// Logout, invalidate JWT if not expired
+// TODO: Logout, invalidate JWT if not expired
 function logout(req, res, next) {
 
 }
@@ -108,8 +112,8 @@ function getAllTrucks(req, res, next) {
 
 // Get truck from database by id
 function getTruck(req, res, next) {
-	var truckID = parseInt(req.params.id);
-	db.one('SELECT * FROM trucks WHERE id=$1', truckID)
+	var truckID = parseInt(req.params.truck_id);
+	db.one('SELECT * FROM trucks WHERE truck_id=$1', truckID)
 	.then(function (data) {
 		res.status(200).json({
 			code: 200,
@@ -125,12 +129,10 @@ function getTruck(req, res, next) {
 
 // Create a new truck and write to database
 function createTruck(req, res, next) {
-	req.body.zip = parseInt(req.body.zip);
-	// req.body.latitude = parseFloat(req.body.latitude);
-	// req.body.longitude = parseFloat(req.body.longitude);
-	db.none('INSERT INTO trucks(name, phone, address, city,' +
-		'state, zip, broadcasting) VALUES (${name}, ${phone},' +
-		'${address}, ${city}, ${state}, ${zip}, ${broadcasting})',
+	db.none('INSERT INTO trucks(twitter_handle, name, phone, address,' +
+		'date_open, time_open, time_range, broadcasting)' +
+		'VALUES (${twitter_handle}, ${name}, ${phone}, ${address},' +
+		'${date_open}, ${time_open}, ${time_range}, ${broadcasting})',
 		req.body)
 	.then(function () {
 		res.status(201).json({
@@ -146,11 +148,13 @@ function createTruck(req, res, next) {
 
 // Update a truck by id
 function updateTruck(req, res, next) {
-	db.none('UPDATE trucks SET name=$1, phone=$2, address=$3,' +
-		'city=$4, state=$5, zip=$6, broadcasting=$7 WHERE id=$8',
-		[req.body.name, req.body.phone, req.body.address,
-		req.body.city, req.body.state, parseInt(req.body.zip),
-		 req.body.broadcasting, parseInt(req.params.id)])
+	db.none('UPDATE trucks SET twitter_handle=$1, name=$2,' +
+		'phone=$3, address=$4, date_open=$5, time_open=$6,' +
+		'time_range=$7, broadcasting=$8 WHERE truck_id=$9',
+		[req.body.twitter_handle, req.body.name, req.body.phone,
+			req.body.address, req.body.date_open, req.body.time_open,
+			req.body.time_range, req.body.broadcasting,
+			parseInt(req.params.truck_id)])
 	.then(function () {
 		res.status(200).json({
 			code: 200,
@@ -165,8 +169,8 @@ function updateTruck(req, res, next) {
 
 // Deletes a truck from the database with id
 function deleteTruck(req, res, next) {
-	var truckID = parseInt(req.params.id);
-	db.result('DELETE FROM trucks WHERE id=$1', truckID)
+	var truckID = parseInt(req.params.truck_id);
+	db.result('DELETE FROM trucks WHERE truck_id=$1', truckID)
 	.then(function (result) {
 		res.status(200).json({
 			code: 200,
@@ -197,8 +201,8 @@ function getAllUsers(req, res, next) {
 
 // Gets a user by id
 function getUser(req, res, next) {
-	var userID = parseInt(req.params.id);
-	db.one('SELECT * FROM users WHERE id=$1', userID)
+	var userID = parseInt(req.params.user_id);
+	db.one('SELECT * FROM users WHERE user_id=$1', userID)
 	.then(function (data) {
 		res.status(200).json({
 			code: 200,
@@ -218,13 +222,12 @@ function getUser(req, res, next) {
 function createUser(req, res, next) {
 	if (isValidUser(req)) {
 		// hash password and save to hash param in request body
-		bcrypt.hash(req.body.hash, 10, function (err, hash) {
-			req.body.hash = hash;
+		bcrypt.hash(req.body.hash, 10, function (err, hashed) {
+			req.body.hashed_password = hash;
 		});
-
-		db.none('INSERT INTO users(username, hash, fname,' +
-			'lname, email) VALUES (${username}, ${hash},' +
-			'${fname}, ${lname}, ${email})', req.body)
+		db.none('INSERT INTO users(username, hashed_password, first_name,' +
+			'last_name, email) VALUES (${username}, ${hashed_password},' +
+			'${first_name}, ${last_name}, ${email})', req.body)
 		.then(function () {
 			res.status(201).json({
 				code: 201,
@@ -247,10 +250,10 @@ function createUser(req, res, next) {
 // Updates a user by id
 function updateUser(req, res, next) {
 	if (isValidUser(req)) {
-		db.none('UPDATE users SET username=$1, hash=$2, fname=$3,' +
-			'lname=$4, email=$5 WHERE id=$6', [req.body.username,
-			req.body.hash, req.body.fname, req.body.lname,
-			req.body.email, parseInt(req.params.id)])
+		db.none('UPDATE users SET username=$1, hashed_password=$2,' +
+			'first_name=$3, last_name=$4, email=$5 WHERE user_id=$6',
+			[req.body.username, req.body.hashed_password, req.body.first_name,
+			req.body.last_name, req.body.email, parseInt(req.params.user_id)])
 		.then(function () {
 			res.status(200).json({
 				code: 200,
@@ -272,8 +275,8 @@ function updateUser(req, res, next) {
 
 // Deletes a user by id
 function deleteUser(req, res, next) {
-	var userID = parseInt(req.params.id);
-	db.result('DELETE FROM users WHERE id=$1', userID)
+	var userID = parseInt(req.params.user_id);
+	db.result('DELETE FROM users WHERE user_id=$1', userID)
 	.then(function (result) {
 		res.status(200).json({
 			code: 200,
@@ -286,6 +289,43 @@ function deleteUser(req, res, next) {
 	});
 }
 
+// Get truck photo from S3 by truck_id
+function getTruckPhoto(req, res, next) {
+	// TODO
+	var truckID = parseInt(req.params.truck_id);
+}
+
+// Upload a truck photo to S3 by truck_id
+function uploadTruckPhoto(req, res, next) {
+	// TODO
+	var truckID = parseInt(req.params.truck_id);
+}
+
+// Get truck schedule from S3 by truck_id
+function getTruckSchedule(req, res, next) {
+	// TODO
+	var truckID = parseInt(req.params.truck_id);
+}
+
+// Upload a truck schedule to S3 by truck_id
+function uploadTruckSchedule(req, res, next) {
+	// TODO
+	var truckID = parseInt(req.params.truck_id);
+}
+
+// Get user photo from S3 by user_id
+function getUserPhoto(req, res, next) {
+	// TODO
+	var userID = parseInt(req.params.user_id);
+}
+
+// Upload a user photo to S3 by user_id
+function uploadUserPhoto(req, res, next) {
+	// TODO
+	var userID = parseInt(req.params.user_id);
+}
+
+// Check if a valid truck
 function isValidTruck(req) {
 	if (req.body.name.length == 0 ||
 		req.body.name.length > 50) {
@@ -297,32 +337,35 @@ function isValidTruck(req) {
 	return true;
 }
 
+// Check if valid user
 function isValidUser(req) {
 	if (req.body.username.length < 5 ||
 		req.body.username.length > 30) {
 		return false;
 	}
-	if (req.body.hash.length < 5 ||
-		req.body.hash.length > 30) {
+	if (req.body.hashed_password.length < 5 ||
+		req.body.hashed_password.length > 30) {
 		return false;
 	}
-	if (req.body.fname.length == 0 ||
-		req.body.fname.length > 30) {
+	if (req.body.first_name.length == 0 ||
+		req.body.first_name.length > 30) {
 		return false;
 	}
-	if (req.body.lname.length == 0 ||
-		req.body.lname.length > 30) {
+	if (req.body.last_name.length == 0 ||
+		req.body.last_name.length > 30) {
 		return false;
 	}
 	return isValidEmail(req.body.email);
 }
 
+// Check if valid phone number
 function isValidPhone(p) {
   var phoneRe = /^[2-9]\d{2}[2-9]\d{2}\d{4}$/;
   var digits = p.replace(/\D/g, "");
   return phoneRe.test(digits);
 }
 
+// Check if valid email
 function isValidEmail(email) {
 	var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
@@ -342,5 +385,11 @@ module.exports = {
 	getUser: getUser,
 	createUser: createUser,
 	updateUser: updateUser,
-	deleteUser: deleteUser
+	deleteUser: deleteUser,
+	getTruckPhoto: getTruckPhoto,
+	uploadTruckPhoto: uploadTruckPhoto,
+	getTruckSchedule: getTruckSchedule,
+	uploadTruckSchedule: uploadTruckSchedule,
+	getUserPhoto: getUserPhoto,
+	uploadUserPhoto: uploadUserPhoto
 };
