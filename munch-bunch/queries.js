@@ -137,7 +137,7 @@ function getAllTrucks(req, res, next) {
 
 // Get truck from database by id
 function getTruck(req, res, next) {
-	var truckID = parseInt(req.params.truck_id);
+	var truckID = parseInt(req.params.id);
 	db.one('SELECT * FROM trucks WHERE truck_id=$1', truckID)
 	.then(function (data) {
 		res.status(200).json({
@@ -179,7 +179,7 @@ function updateTruck(req, res, next) {
 		[req.body.twitter_handle, req.body.name, req.body.phone,
 			req.body.address, req.body.date_open, req.body.time_open,
 			req.body.time_range, req.body.broadcasting,
-			parseInt(req.params.truck_id)])
+			parseInt(req.params.id)])
 	.then(function () {
 		res.status(200).json({
 			code: 200,
@@ -194,7 +194,7 @@ function updateTruck(req, res, next) {
 
 // Deletes a truck from the database with id
 function deleteTruck(req, res, next) {
-	var truckID = parseInt(req.params.truck_id);
+	var truckID = parseInt(req.params.id);
 	db.result('DELETE FROM trucks WHERE truck_id=$1', truckID)
 	.then(function (result) {
 		res.status(200).json({
@@ -226,7 +226,7 @@ function getAllUsers(req, res, next) {
 
 // Gets a user by id
 function getUser(req, res, next) {
-	var userID = parseInt(req.params.user_id);
+	var userID = parseInt(req.params.id);
 	db.one('SELECT * FROM users WHERE user_id=$1', userID)
 	.then(function (data) {
 		res.status(200).json({
@@ -278,7 +278,7 @@ function updateUser(req, res, next) {
 		db.none('UPDATE users SET username=$1, hashed_password=$2,' +
 			'first_name=$3, last_name=$4, email=$5 WHERE user_id=$6',
 			[req.body.username, req.body.hashed_password, req.body.first_name,
-			req.body.last_name, req.body.email, parseInt(req.params.user_id)])
+			req.body.last_name, req.body.email, parseInt(req.params.id)])
 		.then(function () {
 			res.status(200).json({
 				code: 200,
@@ -300,7 +300,7 @@ function updateUser(req, res, next) {
 
 // Deletes a user by id
 function deleteUser(req, res, next) {
-	var userID = parseInt(req.params.user_id);
+	var userID = parseInt(req.params.id);
 	db.result('DELETE FROM users WHERE user_id=$1', userID)
 	.then(function (result) {
 		res.status(200).json({
@@ -314,24 +314,14 @@ function deleteUser(req, res, next) {
 	});
 }
 
-// Helper function to upload file to S3
-function uploadToS3(uploadParams) {
-	s3.upload(uploadParams, function(err, data) {
-		if (err) {
-			console.log("Error:", err);
-		} else {
-			console.log("Upload success", data.Location);
-		}
-	});
-}
-
 // Helper function to download a file from S3
 function downloadFromS3(downloadParams) {
 	s3.getObject(downloadParams, function(err, data) {
 		if (err) {
 			console.log("Error:", err);
+			return false;
 		} else {
-			console.log(data.Body.toString());
+			return true;
 		}
 	});
 }
@@ -340,7 +330,7 @@ function downloadFromS3(downloadParams) {
 function getParams(bucket, key, base64Data, encoding, type) {
 	const params = {
 		Bucket: bucket,
-		key: key,
+		Key: key,
 		Body: base64Data,
 		ACL: 'public-read',
 		ContentEncoding: encoding,
@@ -351,31 +341,56 @@ function getParams(bucket, key, base64Data, encoding, type) {
 
 // Get truck photo from S3 by truck_id
 function getTruckPhoto(req, res, next) {
-	var truckID = req.params.truck_id;
+	var truckID = req.params.id;
 	var	downloadParams = {Bucket: TRUCK_PHOTO_BUCKET,
 		Key: truckID};
-	downloadFromS3(downloadParams);
+	var s3Download = s3.getObject(downloadParams).promise();
+	s3Download
+		.then(function(data) {
+			return res.status(200).json({
+				code: 200,
+				status: 'success',
+				data: data.Body.toString(),
+				message: 'Downloaded truck photo'
+			});
+		})
+		.catch(function(error) {
+			return next(error);
+		});
 }
 
 // Upload a truck photo to S3 by truck_id
 function uploadTruckPhoto(req, res, next) {
-	var truckID = req.params.truck_id;
+	// Allows the upload to finish without timing out
+	var truckID = req.params.id;
+	console.log(truckID);
 	var base64Data = req.body.base64Data;
 	var uploadParams = getParams(TRUCK_PHOTO_BUCKET,
-		truckID, base64Data, BASE_64, JPEG);
-	uploadToS3(uploadParams);
+		truckID, base64Data, BASE_64, IMG_JPEG);
+	var s3Upload = s3.upload(uploadParams).promise();
+	s3Upload
+		.then(function(data) {
+			return res.status(201).json({
+				code: 201,
+				status: 'success',
+				message: 'Uploaded truck photo'
+			});
+		})
+		.catch(function(error) {
+			return next(error);
+		});
 }
 
 // Update a truck photo in S3 by truck_id
 function updateTruckPhoto(req, res, next) {
 	// TODO
-	var truckID = req.params.truck_id;
+	var truckID = req.params.id;
 }
 
 // Get truck schedule from S3 by truck_id
 function getTruckSchedule(req, res, next) {
 	// TODO
-	var truckID = req.params.truck_id;
+	var truckID = req.params.id;
 	var	downloadParams = {Bucket: TRUCK_SCHEDULE_BUCKET,
 		Key: truckID};
 	downloadFromS3(downloadParams);
@@ -384,12 +399,12 @@ function getTruckSchedule(req, res, next) {
 // Upload a truck schedule to S3 by truck_id
 function uploadTruckSchedule(req, res, next) {
 	// TODO
-	var truckID = req.params.truck_id;
+	var truckID = req.params.id;
 }
 
 // Update a truck photo in S3 by truck_id
 function updateTruckSchedule(req, res, next) {
-	var truckID = req.params.truck_id;
+	var truckID = req.params.id;
 	var base64Data = req.body.base64Data;
 	var uploadParams = getParams(TRUCK_SCHEDULE_BUCKET,
 		truckID, base64Data, BASE_64, APP_JSON);
@@ -398,7 +413,7 @@ function updateTruckSchedule(req, res, next) {
 // Get user photo from S3 by user_id
 function getUserPhoto(req, res, next) {
 	// TODO
-	var userID = req.params.user_id;
+	var userID = req.params.id;
 	var	downloadParams = {Bucket: USER_PHOTO_BUCKET,
 		Key: userID};
 	downloadFromS3(downloadParams);
@@ -407,7 +422,7 @@ function getUserPhoto(req, res, next) {
 // Upload a user photo to S3 by user_id
 function uploadUserPhoto(req, res, next) {
 	// TODO
-	var userID = req.params.user_id;
+	var userID = req.params.id;
 	var base64Data = req.body.base64Data;
 	var uploadParams = getParams(USER_PHOTO_BUCKET,
 		userID, base64Data, BASE_64, IMG_JPEG);
@@ -417,7 +432,7 @@ function uploadUserPhoto(req, res, next) {
 // Update a user photo in S3 by user_id
 function updateUserPhoto(req, res, next) {
 	// TODO
-	var userID = req.params.user_id;
+	var userID = req.params.id;
 }
 
 // Check if a valid truck

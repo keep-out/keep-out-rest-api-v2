@@ -24,18 +24,18 @@ router.put('/api/v1/users/:id', vt.verifyToken, db.updateUser);
 router.delete('/api/v1/users/:id', vt.verifyToken, db.deleteUser);
 
 // S3 endpoints
-router.get('api/v1/s3/trucks/photo/:id', vt.verifyToken, db.getTruckPhoto);
-router.post('api/v1/s3/trucks/photo/:id', vt.verifyToken, db.uploadTruckPhoto);
-router.put('api/v1/s3/trucks/photo/:id', vt.verifyToken, db.updateTruckPhoto);
-router.get('api/v1/s3/trucks/schedule/:id', vt.verifyToken,
+router.get('/api/v1/s3/trucks/photo/:id', vt.verifyToken, db.getTruckPhoto);
+router.post('/api/v1/s3/trucks/photo/:id', vt.verifyToken, db.uploadTruckPhoto);
+router.put('/api/v1/s3/trucks/photo/:id', vt.verifyToken, db.updateTruckPhoto);
+router.get('/api/v1/s3/trucks/schedule/:id', vt.verifyToken,
   db.getTruckSchedule);
-router.post('api/v1/s3/trucks/schedule/:id', vt.verifyToken,
+router.post('/api/v1/s3/trucks/schedule/:id', vt.verifyToken,
   db.uploadTruckSchedule);
-router.put('api/v1/s3/trucks/schedule/:id', vt.verifyToken,
+router.put('/api/v1/s3/trucks/schedule/:id', vt.verifyToken,
   db.updateTruckSchedule);
-router.get('api/v1/s3/users/photo/:id', vt.verifyToken, db.getUserPhoto);
-router.post('api/v1/s3/users/photo/:id', vt.verifyToken, db.uploadUserPhoto);
-router.put('api/v1/s3/users/photo/:id', vt.verifyToken, db.updateUserPhoto);
+router.get('/api/v1/s3/users/photo/:id', vt.verifyToken, db.getUserPhoto);
+router.post('/api/v1/s3/users/photo/:id', vt.verifyToken, db.uploadUserPhoto);
+router.put('/api/v1/s3/users/photo/:id', vt.verifyToken, db.updateUserPhoto);
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
