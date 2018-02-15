@@ -381,12 +381,6 @@ function uploadTruckPhoto(req, res, next) {
 		});
 }
 
-// Update a truck photo in S3 by truck_id
-function updateTruckPhoto(req, res, next) {
-	// TODO
-	var truckID = req.params.id;
-}
-
 // Get truck schedule from S3 by truck_id
 function getTruckSchedule(req, res, next) {
 	// TODO
@@ -400,14 +394,6 @@ function getTruckSchedule(req, res, next) {
 function uploadTruckSchedule(req, res, next) {
 	// TODO
 	var truckID = req.params.id;
-}
-
-// Update a truck photo in S3 by truck_id
-function updateTruckSchedule(req, res, next) {
-	var truckID = req.params.id;
-	var base64Data = req.body.base64Data;
-	var uploadParams = getParams(TRUCK_SCHEDULE_BUCKET,
-		truckID, base64Data, BASE_64, APP_JSON);
 }
 
 // Get user photo from S3 by user_id
@@ -427,12 +413,6 @@ function uploadUserPhoto(req, res, next) {
 	var uploadParams = getParams(USER_PHOTO_BUCKET,
 		userID, base64Data, BASE_64, IMG_JPEG);
 	uploadToS3(uploadParams);
-}
-
-// Update a user photo in S3 by user_id
-function updateUserPhoto(req, res, next) {
-	// TODO
-	var userID = req.params.id;
 }
 
 // Check if a valid truck
@@ -498,11 +478,8 @@ module.exports = {
 	deleteUser: deleteUser,
 	getTruckPhoto: getTruckPhoto,
 	uploadTruckPhoto: uploadTruckPhoto,
-	updateTruckPhoto: updateTruckPhoto,
 	getTruckSchedule: getTruckSchedule,
 	uploadTruckSchedule: uploadTruckSchedule,
-	updateTruckSchedule: updateTruckSchedule,
 	getUserPhoto: getUserPhoto,
 	uploadUserPhoto: uploadUserPhoto,
-	updateUserPhoto: updateUserPhoto
 };
