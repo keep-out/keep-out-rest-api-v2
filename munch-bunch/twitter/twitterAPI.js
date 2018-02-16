@@ -14,19 +14,34 @@ var client = new Twitter({
 function getTweets() {
   var params = {
     screen_name: "BookThatTruck",
-    count: 40
+    count: 1
   };
 
   client.get("statuses/user_timeline", params, function(error, tweets, response) {
     if (!error) {
       for (var index = 0; index < tweets.length; index++) {
-          console.log(tweets[index].text);
+          //Text of All Tweets
+          //console.log(tweets[index].text);
+
+          //Typically The Restaurant
+          //console.log(tweets[index].entities.user_mentions[0].screen_name);
+
+          //Picture Attached
+          //console.log(tweets[index].entities.media[0].media_url_https);
+
+          console.log(tweets[index].entities);
       }
     } else {
       console.error('An error occurred!'); //error handling
     }
 
   });
+}
+
+function getPictures() {
+  var params = {
+    screen_name: "_kennytnguyen"
+  }
 }
 
 console.log(getTweets());
