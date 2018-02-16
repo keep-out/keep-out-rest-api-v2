@@ -14,22 +14,33 @@ var client = new Twitter({
 function getTweets() {
   var params = {
     screen_name: "BookThatTruck",
-    count: 1
+    count: 12
   };
 
   client.get("statuses/user_timeline", params, function(error, tweets, response) {
     if (!error) {
       for (var index = 0; index < tweets.length; index++) {
-          //Text of All Tweets
-          //console.log(tweets[index].text);
+          console.log(index);
 
-          //Typically The Restaurant
-          //console.log(tweets[index].entities.user_mentions[0].screen_name);
+          //Restaurant
+          if(tweets[index].entities.hasOwnProperty('user_mentions') &&
+            tweets[index].text.includes('@')){
+            console.log('Restaurant Name: ' + tweets[index].entities.user_mentions[0].screen_name);
+          } else {
+            console.log('Restaurant Name: ' + tweets[index].entities.hashtags[0].text);
+          }
 
           //Picture Attached
-          //console.log(tweets[index].entities.media[0].media_url_https);
+          if(tweets[index].entities.media != null) {
+            console.log('Picture File: ' + tweets[index].entities.media[0].media_url_https);
+          }
 
-          console.log(tweets[index].entities);
+          //Text of All Tweets
+          console.log(tweets[index].text);
+
+
+
+
       }
     } else {
       console.error('An error occurred!'); //error handling
