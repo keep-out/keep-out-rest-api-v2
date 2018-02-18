@@ -1,5 +1,6 @@
 var express = require('express');
 var Twitter = require('twitter');
+var base64Img = require('base64-img');
 
 var router = express.Router();
 var client = new Twitter({
@@ -14,7 +15,7 @@ var client = new Twitter({
 function getTweets() {
   var params = {
     screen_name: "BookThatTruck",
-    count: 12
+    count: 1
   };
 
   client.get("statuses/user_timeline", params, function(error, tweets, response) {
@@ -27,12 +28,20 @@ function getTweets() {
             tweets[index].text.includes('@')){
             console.log('Restaurant Name: ' + tweets[index].entities.user_mentions[0].screen_name);
           } else {
-            console.log('Restaurant Name: ' + tweets[index].entities.hashtags[0].text);
+            //console.log('Restaurant Name: ' + tweets[index].entities.hashtags[0].text);
           }
 
-          //Picture Attached
+          //Picture Attached in Base 64
           if(tweets[index].entities.media != null) {
-            console.log('Picture File: ' + tweets[index].entities.media[0].media_url_https);
+            base64Img.requestBase64(tweets[index].entities.media[0].media_url_https, function(err,res,body) {
+              if(!error) {
+                //console.log(res);
+                console.log(body);
+              } else {
+                console.error('An error occurred!'); //error handling
+              }
+            });
+            //console.log('Picture File: ' + tweets[index].entities.media[0].media_url_https);
           }
 
           //Text of All Tweets
@@ -47,12 +56,6 @@ function getTweets() {
     }
 
   });
-}
-
-function getPictures() {
-  var params = {
-    screen_name: "_kennytnguyen"
-  }
 }
 
 console.log(getTweets());
