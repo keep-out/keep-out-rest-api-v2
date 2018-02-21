@@ -19,17 +19,6 @@ AWS.config.update({accessKeyId: process.env.AWS_ACCESS_KEY_ID,
 AWS.config.update({region: process.env.AWS_S3_REGION})
 
 var s3 = new AWS.S3();
-// Prints out all the buckets
-// listS3Buckets();
-function listS3Buckets() {
-	s3.listBuckets(function(err, data) {
-		if (err) {
-			console.log("Error:", err);
-		} else {
-			console.log("Buckets:", data.Buckets);
-		}
-	});
-}
 
 var options = {
 	// Initialization options
@@ -45,6 +34,18 @@ const cn = {
 	password: process.env.DB_PASSWORD_DEV
 };
 const db = pgp(cn);
+
+// Prints out all the buckets
+// listS3Buckets();
+function listS3Buckets() {
+	s3.listBuckets(function(err, data) {
+		if (err) {
+			console.log("Error:", err);
+		} else {
+			console.log("Buckets:", data.Buckets);
+		}
+	});
+}
 
 // Authenticate user and create JWT
 function authenticate(req, res, next) {
@@ -152,17 +153,18 @@ function getTruck(req, res, next) {
 	});
 }
 
-// Create a new truck and write to database
+// Create a new truck and write to database, returns the truck id
 function createTruck(req, res, next) {
-	db.none('INSERT INTO trucks(twitter_handle, name, phone, address,' +
+	db.one('INSERT INTO trucks(twitter_handle, url, name, phone, address,' +
 		'date_open, time_open, time_range, broadcasting)' +
-		'VALUES (${twitter_handle}, ${name}, ${phone}, ${address},' +
+		'VALUES (${twitter_handle}, ${url}, ${name}, ${phone}, ${address},' +
 		'${date_open}, ${time_open}, ${time_range}, ${broadcasting})',
 		req.body)
-	.then(function () {
+	.then(function (data) {
 		res.status(201).json({
 			code: 201,
 			status: 'success',
+			data: data.truck_id,
 			message: 'Created new truck.'
 		});
 	})
@@ -173,12 +175,12 @@ function createTruck(req, res, next) {
 
 // Update a truck by id
 function updateTruck(req, res, next) {
-	db.none('UPDATE trucks SET twitter_handle=$1, name=$2,' +
-		'phone=$3, address=$4, date_open=$5, time_open=$6,' +
-		'time_range=$7, broadcasting=$8 WHERE truck_id=$9',
-		[req.body.twitter_handle, req.body.name, req.body.phone,
-			req.body.address, req.body.date_open, req.body.time_open,
-			req.body.time_range, req.body.broadcasting,
+	db.none('UPDATE trucks SET twitter_handle=$1, url=$2, name=$3,' +
+		'phone=$4, address=$5, date_open=$6, time_open=$7,' +
+		'time_range=$8, broadcasting=$9 WHERE truck_id=$10',
+		[req.body.twitter_handle, req.body.url, req.body.name,
+			req.body.phone, req.body.address, req.body.date_open,
+			req.body.time_open, req.body.time_range, req.body.broadcasting,
 			parseInt(req.params.id)])
 	.then(function () {
 		res.status(200).json({
@@ -250,13 +252,14 @@ function createUser(req, res, next) {
 		bcrypt.hash(req.body.hash, 10, function (err, hashed) {
 			req.body.hashed_password = hash;
 		});
-		db.none('INSERT INTO users(username, hashed_password, first_name,' +
+		db.one('INSERT INTO users(username, hashed_password, first_name,' +
 			'last_name, email) VALUES (${username}, ${hashed_password},' +
 			'${first_name}, ${last_name}, ${email})', req.body)
-		.then(function () {
+		.then(function (data) {
 			res.status(201).json({
 				code: 201,
 				status: 'success',
+				data: data.user_id,
 				message: 'Created new user.'
 			});
 		})
