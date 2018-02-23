@@ -49,7 +49,7 @@ function listS3Buckets() {
 
 // Authenticate user and create JWT
 function authenticate(req, res, next) {
-	db.one('SELECT hashed_password FROM users WHERE username=$1',
+	db.one('SELECT user_id, hashed_password FROM users WHERE username=$1',
 		req.body.username)
 	.then(function (data) {
 		// Check hashed password with password
@@ -65,7 +65,8 @@ function authenticate(req, res, next) {
 					status: 'success',
 					data: {
 						auth: true,
-						token: token
+						token: token,
+						id: data.user_id
 					},
 					message: 'Authenticated user.'
 				});
@@ -77,7 +78,6 @@ function authenticate(req, res, next) {
 	})
 	.catch(function (err) {
 		// No user exists with given username
-		console.log(err);
 		return next(err);
 	});
 }
@@ -87,10 +87,10 @@ function register(req, res, next) {
 	if (isValidUser(req)) {
 		req.body.hashed_password = bcrypt.hashSync(req.body.hashed_password, 10);
 		// Write user to database
-		db.none('INSERT INTO users(username, hashed_password, first_name,' +
+		db.one('INSERT INTO users(username, hashed_password, first_name,' +
 			'last_name, email) VALUES (${username}, ${hashed_password},' +
-			'${first_name}, ${last_name}, ${email})', req.body)
-		.then(function () {
+			'${first_name}, ${last_name}, ${email}) RETURNING user_id', req.body)
+		.then(function (data) {
 			// Creates a new JWT that expires in 24 hours
 			var token = jwt.sign({username: req.body.username},
 				process.env.JWT_SECRET, {expiresIn: 86400});
@@ -99,7 +99,8 @@ function register(req, res, next) {
 				status: 'success',
 				data: {
 					auth: true,
-					token: token
+					token: token,
+					id: data.user_id
 				},
 				message: 'Created a new user.'
 			});
@@ -158,7 +159,7 @@ function createTruck(req, res, next) {
 	db.one('INSERT INTO trucks(twitter_handle, url, name, phone, address,' +
 		'date_open, time_open, time_range, broadcasting)' +
 		'VALUES (${twitter_handle}, ${url}, ${name}, ${phone}, ${address},' +
-		'${date_open}, ${time_open}, ${time_range}, ${broadcasting})',
+		'${date_open}, ${time_open}, ${time_range}, ${broadcasting}) RETURNING truck_id',
 		req.body)
 	.then(function (data) {
 		res.status(201).json({
@@ -366,7 +367,6 @@ function getTruckPhoto(req, res, next) {
 function uploadTruckPhoto(req, res, next) {
 	// Allows the upload to finish without timing out
 	var truckID = req.params.id;
-	console.log(truckID);
 	var base64Data = req.body.base64Data;
 	var uploadParams = getParams(TRUCK_PHOTO_BUCKET,
 		truckID, base64Data, BASE_64, IMG_JPEG);
