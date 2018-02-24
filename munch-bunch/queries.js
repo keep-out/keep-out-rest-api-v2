@@ -250,9 +250,7 @@ function getUser(req, res, next) {
 function createUser(req, res, next) {
 	if (isValidUser(req)) {
 		// hash password and save to hash param in request body
-		bcrypt.hash(req.body.hash, 10, function (err, hashed) {
-			req.body.hashed_password = hash;
-		});
+		req.body.hashed_password = bcrypt.hashSync(req.body.hashed_password, 10);
 		db.one('INSERT INTO users(username, hashed_password, first_name,' +
 			'last_name, email) VALUES (${username}, ${hashed_password},' +
 			'${first_name}, ${last_name}, ${email})', req.body)
@@ -279,6 +277,8 @@ function createUser(req, res, next) {
 // Updates a user by id
 function updateUser(req, res, next) {
 	if (isValidUser(req)) {
+		// Hash the password before updating in the database
+		req.body.hashed_password = bcrypt.hashSync(req.body.hashed_password, 10);
 		db.none('UPDATE users SET username=$1, hashed_password=$2,' +
 			'first_name=$3, last_name=$4, email=$5 WHERE user_id=$6',
 			[req.body.username, req.body.hashed_password, req.body.first_name,
