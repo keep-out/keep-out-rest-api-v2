@@ -9,6 +9,11 @@ router.post('/api/v1/auth/authenticate', db.authenticate);
 router.post('/api/v1/auth/register', db.register);
 router.post('/api/v1/auth/logout', db.logout);
 
+// Bookmark endpoints
+router.post('/api/v1/bookmarks', vt.verifyToken, db.addBookmark);
+router.delete('/api/v1/bookmarks', vt.verifyToken, db.deleteBookmark);
+router.get('/api/v1/bookmarks/:id', vt.verifyToken, db.getAllBookmarks);
+
 // Truck endpoints
 router.get('/api/v1/trucks', vt.verifyToken, db.getAllTrucks);
 router.get('/api/v1/trucks/:id', vt.verifyToken, db.getTruck);
