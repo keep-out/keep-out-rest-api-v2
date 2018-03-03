@@ -143,8 +143,8 @@ function addBookmark(req, res, next) {
 
 // Remove bookmark from bookmarks table
 function deleteBookmark(req, res, next) {
-	db.result('DELETE FROM bookmarks WHERE user_id=$1' +
-		'AND truck_id=$2', [req.body.user_id, req.body.truck_id])
+	db.result('DELETE FROM bookmarks WHERE user_id=$1 AND truck_id=$2',
+		[req.body.user_id, req.body.truck_id])
 		.then(function (result) {
 			res.status(200).json({
 				code: 200,
