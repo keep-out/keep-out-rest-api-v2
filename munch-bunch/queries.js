@@ -122,6 +122,58 @@ function logout(req, res, next) {
 
 }
 
+// Add bookmark to bookmarks table
+function addBookmark(req, res, next) {
+	db.one('INSERT INTO bookmarks(user_id, truck_id) VALUES' +
+		'(${user_id}, ${truck_id}) RETURNING bookmark_id', req.body)
+	.then(function (data) {
+		res.status(201).json({
+			code: 201,
+			status: 'success',
+			data: {
+				id: data.bookmark_id
+			},
+			message: 'Added new favorite.'
+		});
+	})
+	.catch(function (err) {
+		return next(err);
+	});
+}
+
+// Remove bookmark from bookmarks table
+function deleteBookmark(req, res, next) {
+	db.result('DELETE FROM bookmarks WHERE user_id=$1 AND truck_id=$2',
+		[req.body.user_id, req.body.truck_id])
+		.then(function (result) {
+			res.status(200).json({
+				code: 200,
+				status: 'success',
+				message: `Removed ${result.rowCount} bookmark.`
+			});
+		})
+		.catch(function (err) {
+			return next(err);
+		});
+}
+
+// Get all bookmarks from bookmark table for user with user_id
+function getAllBookmarks(req, res, next) {
+	var userId = parseInt(req.params.id);
+	db.any('SELECT truck_id FROM bookmarks WHERE user_id=$1', userId)
+	.then(function (data) {
+		res.status(200).json({
+			code: 200,
+			status: 'success',
+			data: data,
+			message: 'Retrieved bookmarks for user_id: ' + userId + '.'
+		});
+	})
+	.catch(function (err) {
+		return next(err);
+	});
+}
+
 // Get all trucks from database
 function getAllTrucks(req, res, next) {
 	db.any('SELECT * FROM trucks').then(function (data) {
@@ -133,20 +185,21 @@ function getAllTrucks(req, res, next) {
 		});
 	})
 	.catch(function (err) {
+		console.log("error");
 		return next(err);
 	});
 }
 
 // Get truck from database by id
 function getTruck(req, res, next) {
-	var truckID = parseInt(req.params.id);
-	db.one('SELECT * FROM trucks WHERE truck_id=$1', truckID)
+	var truckId = parseInt(req.params.id);
+	db.one('SELECT * FROM trucks WHERE truck_id=$1', truckId)
 	.then(function (data) {
 		res.status(200).json({
 			code: 200,
 			status: 'success',
 			data: data,
-			message: 'Retrieved truck ' + truckID + '.'
+			message: 'Retrieved truck ' + truckId + '.'
 		});
 	})
 	.catch(function (err) {
@@ -469,6 +522,9 @@ module.exports = {
 	authenticate: authenticate,
 	register: register,
 	logout: logout,
+	addBookmark: addBookmark,
+	deleteBookmark: deleteBookmark,
+	getAllBookmarks: getAllBookmarks,
 	getAllTrucks: getAllTrucks,
 	getTruck: getTruck,
 	createTruck: createTruck,
