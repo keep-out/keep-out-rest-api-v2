@@ -21,6 +21,7 @@
     "morgan": "~1.9.0",
     "pg-promise": "^5.9.7",
     "s3": "^4.4.0",
-    "serve-favicon": "~2.4.5"
+    "serve-favicon": "~2.4.5",
+    "yelp-fusion": "^2.0.3"
   }
 }
