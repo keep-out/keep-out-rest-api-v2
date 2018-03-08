@@ -99,12 +99,12 @@ function getTruckInfo() {
                 /**
                     ADD Picture Here
                 **/
+                console.log('Picture File: ' + restaurantPic);
                 if (restaurantHandle != null) {
-
+                  //addPicture(restaurantHandle, restaurantPic);
                 } else if (restaurantHashtag != null) {
 
                 }
-                console.log('Picture File: ' + restaurantPic);
               }
           }
 
@@ -167,6 +167,8 @@ function getName(twitterHandle) {
         console.log('Restaurant Handle: ' + twitterHandle);
         console.log('Restaurant Name: ' + realName);
 
+        //addTruck(twitterHandle, realName);
+
         getYelpData(realName);
       } else {
         //return twitterHandle;
@@ -200,6 +202,9 @@ function getYelpData(restaurantName) {
       console.log('Restaurant Name: ' + restaurantName);
       console.log('Rating: ' + rating);
       console.log('Phone Number: ' + phone);
+
+      //addDetails(restaurantName, rating, phone);
+
       if (response.jsonBody.hasOwnProperty('businesses'))
       {
         /*
@@ -213,6 +218,7 @@ function getYelpData(restaurantName) {
         console.log('Location Latitude: ' + lat);
         console.log('Location Longitude: ' + long);
 
+        //addCoords(restaurantName, lat, long);
       }
     }).catch(e => {
       console.log(e)
