@@ -87,8 +87,10 @@ function register(req, res, next) {
 	if (isValidUser(req)) {
 		req.body.hashed_password = bcrypt.hashSync(req.body.hashed_password, 10);
 		// Write user to database
-		db.one('INSERT INTO users(username, hashed_password) VALUES ' +
-			'(${username}, ${hashed_password}) RETURNING user_id', req.body)
+		db.one('INSERT INTO users(email, username, hashed_password,' +
+			'first_name, last_name) VALUES (${email}, ${username}, ' +
+			'${hashed_password}, ${first_name}, ${last_name}' +
+			') RETURNING user_id', req.body)
 		.then(function (data) {
 			// Creates a new JWT that expires in 24 hours
 			var token = jwt.sign({username: req.body.username},
@@ -303,8 +305,10 @@ function createUser(req, res, next) {
 	if (isValidUser(req)) {
 		// hash password and save to hash param in request body
 		req.body.hashed_password = bcrypt.hashSync(req.body.hashed_password, 10);
-		db.one('INSERT INTO users(username, hashed_password) VALUES ' +
-			'(${username}, ${hashed_password})', req.body)
+		db.one('INSERT INTO users(email, username, hashed_password,' +
+			'first_name, last_name) VALUES (${email}, ${username}, ' +
+			'${hashed_password}, ${first_name}, ${last_name}' +
+			') RETURNING user_id', req.body)
 		.then(function (data) {
 			res.status(201).json({
 				code: 201,
@@ -330,8 +334,10 @@ function updateUser(req, res, next) {
 	if (isValidUser(req)) {
 		// Hash the password before updating in the database
 		req.body.hashed_password = bcrypt.hashSync(req.body.hashed_password, 10);
-		db.none('UPDATE users SET username=$1, hashed_password=$2 WHERE user_id=$3',
-			[req.body.username, req.body.hashed_password, parseInt(req.params.id)])
+		db.none('UPDATE users SET email=$1, username=$2, hashed_password=$3,' +
+			'first_name=$4, last_name=$5 WHERE user_id=$6',
+			[req.body.email, req.body.username, req.body.hashed_password,
+				req.body.first_name, req.body.last_name, parseInt(req.params.id)])
 		.then(function () {
 			res.status(200).json({
 				code: 200,
@@ -489,16 +495,15 @@ function isValidUser(req) {
 		req.body.hashed_password.length > 30) {
 		return false;
 	}
-	return true;
-	// if (req.body.first_name.length == 0 ||
-	// 	req.body.first_name.length > 30) {
-	// 	return false;
-	// }
-	// if (req.body.last_name.length == 0 ||
-	// 	req.body.last_name.length > 30) {
-	// 	return false;
-	// }
-	// return isValidEmail(req.body.email);
+	if (req.body.first_name.length == 0 ||
+		req.body.first_name.length > 30) {
+		return false;
+	}
+	if (req.body.last_name.length == 0 ||
+		req.body.last_name.length > 30) {
+		return false;
+	}
+	return isValidEmail(req.body.email);
 }
 
 // Check if valid phone number
