@@ -72,11 +72,13 @@ function authenticate(req, res, next) {
 				});
 			// Passwords don't match
 			} else {
+				console.log('ERROR: passwords don\'t match');
 				return next(err);
 			}
 		});
 	})
 	.catch(function (err) {
+		console.log('ERROR: ' + err);
 		// No user exists with given username
 		return next(err);
 	});
@@ -107,9 +109,11 @@ function register(req, res, next) {
 			});
 		})
 		.catch(function (err) {
+			console.log('ERROR: ' + err);
 			return next(err);
 		});
 	} else {
+		console.log('ERROR: invalid request');
 		res.status(400).json({
 			code: 400,
 			status: 'error',
