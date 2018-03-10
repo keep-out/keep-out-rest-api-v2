@@ -7,7 +7,6 @@ var db = require('../queries');
 // Auth endpoints
 router.post('/api/v1/auth/authenticate', db.authenticate);
 router.post('/api/v1/auth/register', db.register);
-router.post('/api/v1/auth/logout', db.logout);
 
 // Bookmark endpoints
 router.post('/api/v1/bookmarks', vt.verifyToken, db.addBookmark);

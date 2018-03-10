@@ -123,11 +123,6 @@ function register(req, res, next) {
 	}
 }
 
-// TODO: Logout, invalidate JWT if not expired
-function logout(req, res, next) {
-
-}
-
 // Add bookmark to bookmarks table
 function addBookmark(req, res, next) {
 	db.one('INSERT INTO bookmarks(user_id, truck_id) VALUES' +
@@ -528,7 +523,6 @@ function isValidEmail(email) {
 module.exports = {
 	authenticate: authenticate,
 	register: register,
-	logout: logout,
 	addBookmark: addBookmark,
 	deleteBookmark: deleteBookmark,
 	getAllBookmarks: getAllBookmarks,
