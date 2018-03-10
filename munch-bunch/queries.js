@@ -493,14 +493,14 @@ function isValidUser(req) {
 		req.body.hashed_password.length > 30) {
 		return false;
 	}
-	if (req.body.first_name.length == 0 ||
-		req.body.first_name.length > 30) {
-		return false;
-	}
-	if (req.body.last_name.length == 0 ||
-		req.body.last_name.length > 30) {
-		return false;
-	}
+	// if (req.body.first_name.length == 0 ||
+	// 	req.body.first_name.length > 30) {
+	// 	return false;
+	// }
+	// if (req.body.last_name.length == 0 ||
+	// 	req.body.last_name.length > 30) {
+	// 	return false;
+	// }
 	return isValidEmail(req.body.email);
 }
 
