@@ -86,6 +86,7 @@ function authenticate(req, res, next) {
 
 // Register a new user and create JWT
 function register(req, res, next) {
+	console.log(req);
 	if (isValidUser(req)) {
 		req.body.hashed_password = bcrypt.hashSync(req.body.hashed_password, 10);
 		// Write user to database
