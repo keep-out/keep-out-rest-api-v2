@@ -90,10 +90,8 @@ function register(req, res, next) {
 	if (isValidUser(req)) {
 		req.body.hashed_password = bcrypt.hashSync(req.body.hashed_password, 10);
 		// Write user to database
-		db.one('INSERT INTO users(email, username, hashed_password,' +
-			'first_name, last_name) VALUES (${email}, ${username}, ' +
-			'${hashed_password}, ${first_name}, ${last_name}' +
-			') RETURNING user_id', req.body)
+		db.one('INSERT INTO users(email, username, hashed_password) VALUES' +
+			'(${email}, ${username}, ${hashed_password}) RETURNING user_id', req.body)
 		.then(function (data) {
 			// Creates a new JWT that expires in 24 hours
 			var token = jwt.sign({username: req.body.username},
