@@ -2,6 +2,7 @@ var express = require('express');
 var Twitter = require('twitter');
 var base64Img = require('base64-img');
 var routes = require('../routes/index');
+var queries = require('../queries');
 //var tweet_parser = require('../node_modules/tweet-parser/index')
 
 
@@ -24,21 +25,8 @@ var client = new Twitter({
   access_token_secret: 'd6Hqv7OiPkFcH7ja3fyr6GQbFFgNmya74K8M2SvNMFBfK'
 });
 
-const promise = require('bluebird');
-var options = {
-	// Initialization options
-	promiseLib: promise
-};
+var db = queries.getDB();
 
-var pgp = require('pg-promise')(options);
-const cn = {
-	host: 'munchbunch-db-dev.cguknh9wbkgb.us-west-1.rds.amazonaws.com',
-	port: 5432,
-	database: process.env.DB_NAME_DEV,
-	user: process.env.DB_USERNAME_DEV,
-	password: process.env.DB_PASSWORD_DEV
-};
-const db = pgp(cn);
 /**
 **
 **
@@ -101,7 +89,7 @@ function getTruckInfo() {
                 **/
                 console.log('Picture File: ' + restaurantPic);
                 if (restaurantHandle != null) {
-                  //addPicture(restaurantHandle, restaurantPic);
+                  addPicture(restaurantHandle, restaurantPic);
                 } else if (restaurantHashtag != null) {
 
                 }
@@ -167,7 +155,7 @@ function getName(twitterHandle) {
         console.log('Restaurant Handle: ' + twitterHandle);
         console.log('Restaurant Name: ' + realName);
 
-        //addTruck(twitterHandle, realName);
+        addTruck(twitterHandle, realName);
 
         getYelpData(realName);
       } else {
@@ -227,38 +215,28 @@ function getYelpData(restaurantName) {
 
 //getYelpData();
 
-function addTruck(restaurantHandle, restaurantName, res, next) {
+function addTruck(restaurantHandle, restaurantName) {
   var broadcasting = false;
-  db.one('INSERT INTO t.trucks (twitter_handle, name, broadcasting)' +
-         'FROM trucks t' +
-         'VALUES (${restaurantHandle}, ${restaurantName}), ${broadcasting}')
+  db.one('INSERT INTO trucks(twitter_handle, url, name, address, broadcasting)' +
+         'VALUES ($1, $2, $3, $4, $5) RETURNING truck_id',
+         [restaurantHandle, '', restaurantName, '', broadcasting])
   .then(function(data) {
-    res.status(201).json({
-      code: 201,
-      success: 'success',
-      data: data.truck_id,
-      message: 'Added Truck Handle & Name'
-    });
+    console.log('Added truck with id: ' + data.truck_id);
   })
   .catch(function (err) {
-    return next(err);
+    console.log(err);
   });
 }
 
-function addDetails(restaurantName, rating, phone, res, next) {
+function addDetails(restaurantName, rating, phone) {
   db.one('UPDATE trucks' +
          'SET rating = ${rating}, phone = ${phone}' +
-         'WHERE restaurantName = ${restaurantName}')
+         'WHERE restaurantName = ${restaurantName} RETURNING truck_id')
   .then(function(data) {
-    res.status(201).json({
-      code: 201,
-      success: 'success',
-      data: data.truck_id,
-      message: 'Added Truck Rating & Phone'
-    });
+    console.log('Added details to truck: ' + data.truck_id);
   })
-  .catch(function (err) {
-    return next(err);
+  .catch(function(err) {
+    console.log(err);
   });
 }
 
@@ -267,43 +245,37 @@ function addDetails(restaurantName, rating, phone, res, next) {
   CHECK THIS
 *
 */
-function addCoords(restaurantName, lat, long, res, next) {
+function addCoords(restaurantName, lat, long) {
   db.one('INSERT INTO c (lat, long)' +
          'FROM trucks t, coords c' +
          'VALUES (${lat}, ${long})' +
-         'WHERE t.restaurantName = ${restaurantName}, c.truck_id = t.truck_id')
+         'WHERE t.restaurantName = ${restaurantName}, c.truck_id = t.truck_id' +
+         'RETURNING truck_id')
   .then(function(data) {
-    res.status(201).json({
-      code: 201,
-      success: 'success',
-      data: data.truck_id,
-      message: 'Added Truck Handle & Name'
-    });
+    console.log('Added coordinates to truck: ' + data.truck_id);
   })
   .catch(function (err) {
-    return next(err);
+    console.log(err);
   });
 }
 
-function addPicture(restaurantHandle, url, res, next) {
+function addPicture(restaurantHandle, url) {
+  // TODO: Ensure truck name is unique
   db.one('UPDATE trucks' +
-         'SET url = ${url}' +
-         'WHERE restaurantHandle = ${restaurantHandle}')
+         'SET url = $1' +
+         'WHERE restaurantHandle = $2 RETURNING truck_id',
+         [url, restaurantHandle])
   .then(function(data) {
-    res.status(201).json({
-      code: 201,
-      success: 'success',
-      data: data.truck_id,
-      message: 'Added Truck Picture URL'
-    });
+    console.log('Added picture to truck: ' + data.truck_id);
   })
   .catch(function (err) {
-    return next(err);
+    console.log(err);
   });
 }
 
-getTruckInfo();
-
+ module.exports = {
+   getTruckInfo: getTruckInfo
+ }
 
 
 /*

@@ -35,6 +35,11 @@ const cn = {
 };
 const db = pgp(cn);
 
+// Returns the DB connection
+function getDB() {
+	return db;
+}
+
 // Prints out all the buckets
 // listS3Buckets();
 function listS3Buckets() {
@@ -519,6 +524,7 @@ function isValidEmail(email) {
 
 // Add query functions
 module.exports = {
+	getDB: getDB,
 	authenticate: authenticate,
 	register: register,
 	addBookmark: addBookmark,
