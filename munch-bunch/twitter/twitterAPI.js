@@ -217,9 +217,9 @@ function getYelpData(restaurantName) {
 
 function addTruck(restaurantHandle, restaurantName) {
   var broadcasting = false;
-  db.one('INSERT INTO trucks(twitter_handle, url, name, address, broadcasting)' +
-         'VALUES ($1, $2, $3, $4, $5) RETURNING truck_id',
-         [restaurantHandle, '', restaurantName, '', broadcasting])
+  db.one('INSERT INTO trucks(twitter_handle, name, broadcasting)' +
+         'VALUES ($1, $2, $3) RETURNING truck_id',
+         [restaurantHandle, restaurantName, broadcasting])
   .then(function(data) {
     console.log('Added truck with id: ' + data.truck_id);
   })
@@ -261,9 +261,9 @@ function addCoords(restaurantName, lat, long) {
 
 function addPicture(restaurantHandle, url) {
   // TODO: Ensure truck name is unique
-  db.one('UPDATE trucks' +
-         'SET url = $1' +
-         'WHERE restaurantHandle = $2 RETURNING truck_id',
+  db.one('UPDATE trucks ' +
+         'SET url=$1' +
+         'WHERE twitter_handle=$2 RETURNING truck_id',
          [url, restaurantHandle])
   .then(function(data) {
     console.log('Added picture to truck: ' + data.truck_id);
