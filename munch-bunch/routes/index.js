@@ -18,7 +18,7 @@ router.delete('/api/v1/bookmarks', vt.verifyToken, db.deleteBookmark);
 router.get('/api/v1/bookmarks/:id', vt.verifyToken, db.getAllBookmarks);
 
 // Truck endpoints
-router.get('/api/v1/trucks/local', vt.verifyToken, db.getLocalTrucks);
+router.post('/api/v1/trucks/local', vt.verifyToken, db.getLocalTrucks);
 router.get('/api/v1/trucks/main', vt.verifyToken, db.getTruckMainInfo);
 router.get('/api/v1/trucks', vt.verifyToken, db.getAllTrucks);
 router.get('/api/v1/trucks/:id', vt.verifyToken, db.getTruck);
