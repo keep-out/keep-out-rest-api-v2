@@ -181,7 +181,9 @@ function getAllBookmarks(req, res, next) {
 // Get local trucks from database
 function getLocalTrucks(req, res, next) {
 	// TODO: Add location based query
-	db.any('SELECT coordinates.truck_id FROM coordinates WHERE earth_box(ll_to_earth($1, $2), $3) @> ll_to_earth(coordinates.latitude, coordinates.longitude)',
+	db.any('SELECT c.truck_id, c.latitude, c.longitude, t.twitter_handle,' +
+		't.url, t.name, t.phone, t.address, t.broadcasting FROM (SELECT coordinates.truck_id, coordinates.latitude, coordinates.longitude FROM coordinates WHERE earth_box(ll_to_earth($1, $2),' +
+		'$3) @> ll_to_earth(coordinates.latitude, coordinates.longitude)) AS c INNER JOIN trucks AS t ON c.truck_id=t.truck_id',
 		[req.body.lat, req.body.long, req.body.radius]).then(function (data) {
 		res.status(200).json({
 			code: 200,
