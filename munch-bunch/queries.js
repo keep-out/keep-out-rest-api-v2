@@ -178,6 +178,41 @@ function getAllBookmarks(req, res, next) {
 	});
 }
 
+// Get local trucks from database
+function getLocalTrucks(req, res, next) {
+	// TODO: Add location based query
+	db.any('SELECT c.truck_id, c.latitude, c.longitude, t.twitter_handle,' +
+		't.url, t.name, t.phone, t.address, t.broadcasting FROM (SELECT coordinates.truck_id, coordinates.latitude, coordinates.longitude FROM coordinates WHERE earth_box(ll_to_earth($1, $2),' +
+		'$3) @> ll_to_earth(coordinates.latitude, coordinates.longitude)) AS c INNER JOIN trucks AS t ON c.truck_id=t.truck_id',
+		[req.body.lat, req.body.long, req.body.radius]).then(function (data) {
+		res.status(200).json({
+			code: 200,
+			status: 'success',
+			data: data,
+			message: 'Retrieved all local trucks.'
+		});
+	})
+	.catch(function (err) {
+		console.log(err);
+		return next(err);
+	});
+}
+
+// Get truck names, handles, and phone numbers
+function getTruckMainInfo(req, res, next) {
+	db.any('SELECT twitter_handle, name, phone FROM trucks').then(function (data) {
+		res.status(200).json({
+			code: 200,
+			status: 'success',
+			data: data,
+			message: 'Retrieved all main truck data.'
+		})
+	})
+	.catch(function (err) {
+		return next(err);
+	});
+}
+
 // Get all trucks from database
 function getAllTrucks(req, res, next) {
 	db.any('SELECT * FROM trucks').then(function (data) {
@@ -189,7 +224,6 @@ function getAllTrucks(req, res, next) {
 		});
 	})
 	.catch(function (err) {
-		console.log("error");
 		return next(err);
 	});
 }
@@ -530,6 +564,8 @@ module.exports = {
 	addBookmark: addBookmark,
 	deleteBookmark: deleteBookmark,
 	getAllBookmarks: getAllBookmarks,
+	getLocalTrucks: getLocalTrucks,
+	getTruckMainInfo: getTruckMainInfo,
 	getAllTrucks: getAllTrucks,
 	getTruck: getTruck,
 	createTruck: createTruck,

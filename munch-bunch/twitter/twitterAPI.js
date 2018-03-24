@@ -245,12 +245,10 @@ function addDetails(restaurantName, rating, phone) {
   CHECK THIS
 *
 */
-function addCoords(restaurantName, lat, long) {
-  db.one('INSERT INTO c (lat, long)' +
-         'FROM trucks t, coords c' +
-         'VALUES (${lat}, ${long})' +
-         'WHERE t.restaurantName = ${restaurantName}, c.truck_id = t.truck_id' +
-         'RETURNING truck_id')
+function addCoords(truck_id, lat, long) {
+  db.one('INSERT INTO coordinates(truck_id, latitude, longitude)' +
+         'VALUES ($1, $2, $3) RETURNING truck_id',
+         [truck_id, lat, long])
   .then(function(data) {
     console.log('Added coordinates to truck: ' + data.truck_id);
   })
