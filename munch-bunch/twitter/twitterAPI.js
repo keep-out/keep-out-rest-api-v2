@@ -276,6 +276,23 @@ function addPicture(restaurantHandle, url) {
  }
 
 
+ function findHandle() {
+   // TODO: Ensure truck name is unique
+   db.any('SELECT name' +
+          'FROM trucks' +
+          'WHERE truck_id=1')
+   .then(function(data) {
+     console.log(data);
+   })
+   .catch(function (err) {
+     console.log(err);
+   });
+ }
+
+findHandle()
+
+
+
 /*
 function getLoc_Time(tweet) {
   var reg = new RegExp(/^\s*(\w*)[\s,\.]+((?:[\s,\.]*[^\s\n]*)*?)[\s,\.]*?((?:[A-Za-z_\.]+?[\s,\.]*?)*)\s+?(\w+?\/\w+|\d+(?:[\s,\.]*?[A-Za-z\.][a-z\.]*?)*)(?:[\s,\.]+[#@A-Za-z]*)*(?:(\d{5})?)[\s,\.]*((?:[\s,\.]*?[A-Za-z]+)*).*?OPEN[\s,\.]*?([0-9]{1,2}):?([0-9:]{2})-([0-9]{1,2}):?([0-9]{2}).*?\s*$/i);
