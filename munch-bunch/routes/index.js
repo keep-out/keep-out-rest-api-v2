@@ -4,9 +4,13 @@ var router = express.Router();
 var vt = require('../auth/verifyToken');
 var db = require('../queries');
 var twitter = require('../twitter/twitterAPI');
+var yelp = require('../twitter/yelpAPI');
 
+<<<<<<< HEAD
+=======
 // TODO: remove test call
 // twitter.getTruckInfo();
+>>>>>>> 1cd7953c60c41c632fec911b6e1d1e30f8a08753
 
 // Auth endpoints
 router.post('/api/v1/auth/authenticate', db.authenticate);
