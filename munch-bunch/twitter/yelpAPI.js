@@ -23,12 +23,12 @@ function searchLATrucks() {
   yelp_client.search({
     term: 'food truck',
     catetories: 'foodtrucks',
-    location: 'cupertino, ca',
+    location: 'houston, tx',
     radius: 40000,
-    limit: 10
+    limit: 50
   }).then(response => {
 
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 50; i++) {
       var name = response.jsonBody.businesses[i].name;
       var genre = response.jsonBody.businesses[i].categories[0].title;
       var rating = response.jsonBody.businesses[i].rating;
@@ -191,3 +191,4 @@ function addTruck(name, rating, phone, genre, url, latitude, longitude) {
   });
 }
 
+// searchLATrucks();
