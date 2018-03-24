@@ -278,8 +278,8 @@ function addPicture(restaurantHandle, url) {
 
  function findHandle() {
    // TODO: Ensure truck name is unique
-   db.any('SELECT name' +
-          'FROM trucks' +
+   db.any('SELECT name ' +
+          'FROM trucks ' +
           'WHERE truck_id=1')
    .then(function(data) {
      console.log(data);
@@ -289,7 +289,7 @@ function addPicture(restaurantHandle, url) {
    });
  }
 
-findHandle()
+// findHandle()
 
 
 
