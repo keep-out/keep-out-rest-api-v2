@@ -23,12 +23,12 @@ function searchLATrucks() {
   yelp_client.search({
     term: 'food truck',
     catetories: 'foodtrucks',
-    location: 'los angeles, ca',
+    location: 'cupertino, ca',
     radius: 40000,
-    limit: 2
+    limit: 10
   }).then(response => {
 
-    for (var i = 0; i < 2; i++) {
+    for (var i = 0; i < 10; i++) {
       var name = response.jsonBody.businesses[i].name;
       var genre = response.jsonBody.businesses[i].categories[0].title;
       var rating = response.jsonBody.businesses[i].rating;
@@ -172,13 +172,12 @@ function searchDenverTrucks() {
 
 function addTruck(name, rating, phone, genre, url, latitude, longitude) {
   var broadcasting = false;
-  db.one('INSERT INTO trucks(name, rating, phone, genre, url)' +
-         'VALUES ($1, $2, $3, $4, $5) RETURNING truck_id',
+  db.one('INSERT INTO trucks(name, rating, phone, genre, url) VALUES ($1, $2, $3, $4, $5) RETURNING truck_id',
          [name, rating, phone, genre, url])
   .then(function(data) {
     /* Insert Truck Events: Coordinates and Broadcasting */
-    db.none('INSERT INTO truckevents(truck_id, latitude, longitude, broadcasting)' +
-           'VALUES (${data.truck_id}, ${latitude}, ${longitude}, ${broadcasting})')
+    db.none('INSERT INTO truckevents(truck_id, latitude, longitude, broadcasting) VALUES ($1, $2, $3, $4)',
+      [data.truck_id, latitude, longitude, broadcasting])
     .then(function(data){
       console.log('success');
     }).catch(function(err){
@@ -192,5 +191,3 @@ function addTruck(name, rating, phone, genre, url, latitude, longitude) {
   });
 }
 
-
-searchLATrucks();
