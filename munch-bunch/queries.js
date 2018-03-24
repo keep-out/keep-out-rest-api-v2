@@ -29,9 +29,9 @@ var pgp = require('pg-promise')(options);
 const cn = {
 	host: 'munchbunch-db-dev.cguknh9wbkgb.us-west-1.rds.amazonaws.com',
 	port: 5432,
-	database: process.env.DB_NAME_DEV,
-	user: process.env.DB_USERNAME_DEV,
-	password: process.env.DB_PASSWORD_DEV
+	database: 'munchbunch_db_dev', // process.env.DB_NAME_DEV,
+	user: 'munchbunch', // process.env.DB_USERNAME_DEV,
+	password: 'munchbunch' // process.env.DB_PASSWORD_DEV
 };
 const db = pgp(cn);
 
@@ -183,7 +183,7 @@ function getLocalTrucks(req, res, next) {
 	// TODO: Add location based query
 	db.any('SELECT c.truck_id, c.latitude, c.longitude, t.twitter_handle,' +
 		't.url, t.name, t.phone, t.address, t.broadcasting FROM (SELECT truckevents.truck_id, truckevents.latitude, truckevents.longitude FROM truckevents WHERE earth_box(ll_to_earth($1, $2),' +
-		'$3) @> ll_to_earth(coordinates.latitude, coordinates.longitude)) AS c INNER JOIN trucks AS t ON c.truck_id=t.truck_id LIMIT 20',
+		'$3) @> ll_to_earth(truckevents.latitude, truckevents.longitude)) AS c INNER JOIN trucks AS t ON c.truck_id=t.truck_id LIMIT 20',
 		[req.body.lat, req.body.long, req.body.radius]).then(function (data) {
 		res.status(200).json({
 			code: 200,
