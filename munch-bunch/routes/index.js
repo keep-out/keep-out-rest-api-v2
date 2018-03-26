@@ -3,8 +3,8 @@ var router = express.Router();
 
 var vt = require('../auth/verifyToken');
 var db = require('../queries');
-var twitter = require('../twitter/twitterAPI');
-var yelp = require('../twitter/yelpAPI');
+var twitter = require('../api_tools/twitterAPI');
+var yelp = require('../api_tools/yelpAPI');
 
 // Auth endpoints
 router.post('/api/v1/auth/authenticate', db.authenticate);
