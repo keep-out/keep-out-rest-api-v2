@@ -329,7 +329,32 @@ function addPicture(restaurantHandle, url) {
 */
 /** END OLD PARSER **/
 
+<<<<<<< HEAD
 /** TRASH CODE **/
+=======
+ module.exports = {
+   getTruckInfo: getTruckInfo
+ }
+
+
+ function findHandle() {
+   // TODO: Ensure truck name is unique
+   db.any('SELECT name ' +
+          'FROM trucks ' +
+          'WHERE truck_id=1')
+   .then(function(data) {
+     console.log(data);
+   })
+   .catch(function (err) {
+     console.log(err);
+   });
+ }
+
+// findHandle()
+
+
+
+>>>>>>> c9be3f82aa3079f5f229d6e827f3638bfd9751ee
 /*
 function getLoc_Time(tweet) {
   var reg = new RegExp(/^\s*(\w*)[\s,\.]+((?:[\s,\.]*[^\s\n]*)*?)[\s,\.]*?((?:[A-Za-z_\.]+?[\s,\.]*?)*)\s+?(\w+?\/\w+|\d+(?:[\s,\.]*?[A-Za-z\.][a-z\.]*?)*)(?:[\s,\.]+[#@A-Za-z]*)*(?:(\d{5})?)[\s,\.]*((?:[\s,\.]*?[A-Za-z]+)*).*?OPEN[\s,\.]*?([0-9]{1,2}):?([0-9:]{2})-([0-9]{1,2}):?([0-9]{2}).*?\s*$/i);
