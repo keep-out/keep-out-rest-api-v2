@@ -6,11 +6,7 @@ var queries = require('../queries');
 //var tweet_parser = require('../node_modules/tweet-parser/index')
 
 
-/**
-**
-  SET UP CREDENTIALS
-**
-**/
+/** SET UP CREDENTIALS **/
 var apiKey = '7xY6QFVhWVu06g0cCmjsGyh3pVd8DcIZBjVRZoJGlp6KQGTPbBBKe2tRQKUt9_fbj2kVyMT5-K-3exSVakqc5SdCJ_Uvjgw8lA4EIu6C3KKUkzERa4B5XkBB1S2fWnYx';
 
 const yelp = require('../node_modules/yelp-fusion');
@@ -26,16 +22,106 @@ var client = new Twitter({
 });
 
 var db = queries.getDB();
-
-/**
-**
-**
-  END SET UP CREDENTIALS
-**
-**
-**/
+/** END SET UP CREDENTIALS **/
 
 
+
+function findHandles(truckId){
+	db.one('SELECT * FROM trucks WHERE truck_id=$1', truckId)
+	.then(function (data) {
+    if(data.name !== undefined || data.name !== null){
+  		console.log(data.name);
+      //console.log(data.twitter_handle);
+      findHandle(data.name);
+    } else {
+      console.log('fail: omitted');
+    }
+	})
+	.catch(function (err) {
+		console.log(err);
+	});
+}
+
+
+for (var i = 0, i < 1200; i++) {
+  findHandles(i);
+}
+//addTwitterHandle('bburgerboyz', 'Billionaire Burger Boyz');
+//findHandle('Churro Boss');
+
+// Find the Twitter Handle using Restaurant Name
+function findHandle(restaurantName) {
+ var params = {
+   q: restaurantName,
+   count: 5,
+   include_entities: false
+ }
+
+ client.get("users/search", params, function(error, userInfo, response) {
+   if (!error) {
+     if (userInfo[0] !== undefined) {
+        console.log('Twitter ID: ' + userInfo[0].id);
+        console.log('Twitter Handle: ' + userInfo[0].screen_name);
+
+        //console.log(userInfo[0]);
+
+
+       //Add Handle to the Database
+       addTwitterHandle(userInfo[0].screen_name, restaurantName);
+       //End Add Handle
+     } else {
+       console.log('fail: no match');
+     }
+
+   }
+     else {
+       console.error('An error in GetName occurred!'); //error handling
+   }
+ });
+}
+
+// Add Twitter Handle to Database using Restaurant Name
+function addTwitterHandle(twitter_handle, restaurantName) {
+  db.any('UPDATE trucks SET twitter_handle=$1 WHERE name=$2', [twitter_handle, restaurantName])
+  .then(function(data) {
+    console.log('success');
+  })
+  .catch(function(err) {
+    console.log(err);
+  })
+}
+
+
+// Get Twitter Timeline: 4 Most Recent Tweets
+function getTimeline(twitter_handle) {
+  var params = {
+    screen_name: twitter_handle,
+    count: 4,
+    exclude_replies: true,
+    include_rts: false
+  };
+  client.get("statuses/user_timeline", params, function(error, tweets, response) {
+    if (!error) {
+      for (var index = 0; index < tweets.length; index++) {
+          console.log(' ');
+
+          var tweet = tweets[index].text;
+          console.log('Tweet #' + index + ': ' + tweet);
+
+          }
+
+
+    } else {
+      console.error('An error occurred!'); //error handling
+    }
+
+  });
+}
+
+
+
+/**  OLD TWITTER PARSER **/
+/*
 function getTruckInfo() {
   var params = {
     screen_name: "BookThatTruck",
@@ -73,7 +159,7 @@ function getTruckInfo() {
               } /*else if (tweets[index].entities.hasOwnProperty('user_mentions') && tweets[index].text.includes('@')) {
                   restaurantHandle = tweets[index].entities.user_mentions[0].screen_name;
                   console.log('Restaurant Handle: ' + restaurantHandle);
-              }*/  else if (tweets[index].entities.hasOwnProperty('hashtags') && tweets[index].text.includes('#')) {
+              }  else if (tweets[index].entities.hasOwnProperty('hashtags') && tweets[index].text.includes('#')) {
                   restaurantHashtag = tweets[index].entities.hashtags[0].text;
                   console.log('Restaurant Hashtag Mention: ' + restaurantHashtag);
               }
@@ -84,9 +170,7 @@ function getTruckInfo() {
 
               if(tweets[index].entities.hasOwnProperty('media')) {
                 var restaurantPic = tweets[index].entities.media[0].media_url_https;
-                /**
-                    ADD Picture Here
-                **/
+
                 console.log('Picture File: ' + restaurantPic);
                 if (restaurantHandle != null) {
                   addPicture(restaurantHandle, restaurantPic);
@@ -96,10 +180,7 @@ function getTruckInfo() {
               }
           }
 
-          /*
-            *
-            * BASE 64 FEATURE
-            *
+          //Base 64 Feature
           if(tweets[index].entities.media != null) {
             base64Img.requestBase64(tweets[index].entities.media[0].media_url_https, function(err,res,body) {
               if(!error) {
@@ -111,11 +192,6 @@ function getTruckInfo() {
                 console.error('An error occurred!'); //error handling
               }
             });
-              *
-              * BASE 64 FEATURE
-              *
-            */
-
             //Restaurant & Tweet Attached Food Picture [.jpg URL] (Populate Media)
 
           }
@@ -129,7 +205,6 @@ function getTruckInfo() {
     }
 
   });
-}
 
 
 function getName(twitterHandle) {
@@ -147,11 +222,8 @@ function getName(twitterHandle) {
 
         //Search for Twitter Handle, then add to restaurant name
         realName = userInfo[0].name;
-        /**
-        **
-          CREATE TRUCK HERE
-        **
-        **/
+
+        //Create Truck
         console.log('Restaurant Handle: ' + twitterHandle);
         console.log('Restaurant Name: ' + realName);
 
@@ -170,20 +242,17 @@ function getName(twitterHandle) {
 
 }
 
+
+
+
+/** START OLD PARSER **/
+/*
 function getYelpData(restaurantName) {
   yelp_client.search({
     term: restaurantName,
     location: 'los angeles, ca'
     }).then(response => {
-      /*
-      *
-      *
-      *
-      INSERT phone_number WHERE restaurant name = restaurantName
-      *
-      *
-      *
-      */
+
       var rating = response.jsonBody.businesses[0].rating;
       var phone = response.jsonBody.businesses[0].phone;
 
@@ -195,11 +264,6 @@ function getYelpData(restaurantName) {
 
       if (response.jsonBody.hasOwnProperty('businesses'))
       {
-        /*
-        **
-          Add into Coords
-        **
-        */
         var lat = response.jsonBody.businesses[0].coordinates.latitude;
         var long = response.jsonBody.businesses[0].coordinates.longitude;
 
@@ -212,8 +276,6 @@ function getYelpData(restaurantName) {
       console.log(e)
     });
 }
-
-//getYelpData();
 
 function addTruck(restaurantHandle, restaurantName) {
   var broadcasting = false;
@@ -240,11 +302,6 @@ function addDetails(restaurantName, rating, phone) {
   });
 }
 
-/*
-*
-  CHECK THIS
-*
-*/
 function addCoords(truck_id, lat, long) {
   db.one('INSERT INTO coordinates(truck_id, latitude, longitude)' +
          'VALUES ($1, $2, $3) RETURNING truck_id',
@@ -258,7 +315,6 @@ function addCoords(truck_id, lat, long) {
 }
 
 function addPicture(restaurantHandle, url) {
-  // TODO: Ensure truck name is unique
   db.one('UPDATE trucks ' +
          'SET url=$1' +
          'WHERE twitter_handle=$2 RETURNING truck_id',
@@ -270,29 +326,10 @@ function addPicture(restaurantHandle, url) {
     console.log(err);
   });
 }
+*/
+/** END OLD PARSER **/
 
- module.exports = {
-   getTruckInfo: getTruckInfo
- }
-
-
- function findHandle() {
-   // TODO: Ensure truck name is unique
-   db.any('SELECT name' +
-          'FROM trucks' +
-          'WHERE truck_id=1')
-   .then(function(data) {
-     console.log(data);
-   })
-   .catch(function (err) {
-     console.log(err);
-   });
- }
-
-findHandle()
-
-
-
+/** TRASH CODE **/
 /*
 function getLoc_Time(tweet) {
   var reg = new RegExp(/^\s*(\w*)[\s,\.]+((?:[\s,\.]*[^\s\n]*)*?)[\s,\.]*?((?:[A-Za-z_\.]+?[\s,\.]*?)*)\s+?(\w+?\/\w+|\d+(?:[\s,\.]*?[A-Za-z\.][a-z\.]*?)*)(?:[\s,\.]+[#@A-Za-z]*)*(?:(\d{5})?)[\s,\.]*((?:[\s,\.]*?[A-Za-z]+)*).*?OPEN[\s,\.]*?([0-9]{1,2}):?([0-9:]{2})-([0-9]{1,2}):?([0-9]{2}).*?\s*$/i);
@@ -375,3 +412,4 @@ function resolveDate (day,start,end) {
 	return [startStamp, endStamp];
 }
 */
+/** END TRASH CODE **/
