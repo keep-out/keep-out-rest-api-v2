@@ -2,7 +2,6 @@ var express = require('express');
 var base64Img = require('base64-img');
 var routes = require('../routes/index');
 var queries = require('../queries');
-//var tweet_parser = require('../node_modules/tweet-parser/index')
 
 
 /**
