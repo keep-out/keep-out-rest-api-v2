@@ -24,10 +24,11 @@ var db = queries.getDB();
 /** END SET UP CREDENTIALS **/
 
 
-
-for (var i = 0; i < 20; i++) {
+//1161 Total
+for (var i = 0; i < 10; i++) {
   fixRating(i);
 }
+
 
 function fixRating(truckId){
 	db.one('SELECT * FROM trucks WHERE truck_id=$1', truckId)
@@ -35,10 +36,15 @@ function fixRating(truckId){
     if(data.name !== undefined || data.name !== null){
 
     	console.log(data.name);
-  		console.log(data.rating);
-      var newRatio = data.rating/5;
-      console.log(newRating);
-      //updateRating(newRating, truckId);
+      db.one('SELECT * FROM truckevents WHERE truck_id=$1', truckId)
+      .then(function(data){
+        var lat = data.latitude;
+        var long = data.longitude;
+
+        ratingsByName(data.name, lat, long);
+      }).catch(function(err){
+        console.log(err);
+      })
     } else {
       console.log('fail: omitted');
     }
@@ -48,14 +54,50 @@ function fixRating(truckId){
 	});
 }
 
-function updateRating(newRating, truckId) {
-  db.any('UPDATE trucks SET rating=$1 WHERE truck_id=$2', [newRating, truckId])
+function ratingsByName(restaurantName, lat, long) {
+  yelp_client.search({
+    term: restaurantName,
+    categories: 'foodtrucks',
+    latitude: lat,
+    longitude: long
+  }).then(response => {
+    var total_count = response.jsonBody.businesses[0].review_count; // Number of Reviews: Denominator
+    var rating = response.jsonBody.businesses[0].rating;
+
+
+    var new_rating = rating/5; // Decimal Number for Percentage
+    var total_score = total_count * new_rating; // Cumulative Score: Numerator
+
+    console.log('New Rating: ' + new_rating);
+    console.log('Total Score: ' + total_score);
+    console.log('Total Count: ' + total_count);
+    // New Rating: Percentage Decimal, Total Count: Cumulative Score, Truck Name
+    //updateRating(new_rating, total_score, total_count, restaurantName)
+  }).catch(e => {
+    console.log(e)
+  });
+}
+
+// Update Rating: If someone thumbs up --> total_count++,
+function updateRating(new_rating, total_score, total_count, restaurantName) {
+  db.any('UPDATE trucks SET rating=$1, total_score=$2, total_count=$3 WHERE name=$4',
+            [new_rating, total_score, total_count, name])
   .then(function(data) {
     console.log('success');
   })
   .catch(function(err) {
     console.log(err);
-  })
+  })new
+}
+
+function thumbsUp() {
+  // Add +1: total_score++ and total_count++
+  // New Rating = total_score/total_count
+}
+
+function thumbsDown() {
+  // Add +1: total_count++
+  // New Rating = total_score/total_count
 }
 
 
