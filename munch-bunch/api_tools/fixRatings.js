@@ -36,7 +36,7 @@ function runThis(i) {
     }, 2000)
 }
 
-runThis(0);
+//runThis(0);
 
 
 function fixRating(truckId){
